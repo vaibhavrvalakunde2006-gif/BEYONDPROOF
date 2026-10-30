@@ -26,10 +26,16 @@ import {
 } from 'recharts';
 import { verificationAPI, engineAPI } from '@/lib/api';
 import { RiskAssessment, VerificationRequest } from '@/lib/types';
+import dynamic from 'next/dynamic';
 import RiskGauge from '@/components/dashboard/RiskGauge';
 import Badge from '@/components/ui/Badge';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { getRiskBgColor, getRiskColor, getRiskLabel } from '@/lib/utils';
+
+const ThreeDRiskPolyhedron = dynamic(
+  () => import('@/components/3d/ThreeDRiskPolyhedron'),
+  { ssr: false }
+);
 
 export default function RiskAnalyzerPage() {
   const [verifications, setVerifications] = useState<VerificationRequest[]>([]);
@@ -227,6 +233,19 @@ export default function RiskAnalyzerPage() {
         </div>
       ) : (
         <div className="space-y-6">
+          {/* 3D Interactive Cyber Threat Matrix & Risk Polyhedron */}
+          <ThreeDRiskPolyhedron
+            score={assessment?.overall_score ?? 42}
+            category={assessment?.risk_category ?? 'suspicious'}
+            vectors={{
+              tamper: assessment?.individual_scores?.document ?? 35,
+              synthetic: assessment?.individual_scores?.media ?? 65,
+              provenance: assessment?.individual_scores?.source ?? 25,
+              metadata: assessment?.individual_scores?.identity ?? 40,
+              network: 28,
+            }}
+          />
+
           {/* Top Score & Narrative Assessment */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Risk Gauge Card */}

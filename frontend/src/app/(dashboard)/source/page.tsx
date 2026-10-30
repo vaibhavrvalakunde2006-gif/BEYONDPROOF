@@ -17,9 +17,15 @@ import {
 } from 'lucide-react';
 import { filesAPI, engineAPI } from '@/lib/api';
 import { SourceComparisonResult } from '@/lib/types';
+import dynamic from 'next/dynamic';
 import FileUploadZone from '@/components/ui/FileUploadZone';
 import Badge from '@/components/ui/Badge';
 import { formatDate } from '@/lib/utils';
+
+const ThreeDProvenanceChain = dynamic(
+  () => import('@/components/3d/ThreeDProvenanceChain'),
+  { ssr: false }
+);
 
 interface FingerprintRecord {
   id: string;
@@ -149,6 +155,13 @@ export default function SourceTrackerPage() {
           <span>Fingerprint Registry Lookup</span>
         </button>
       </div>
+
+      {/* 3D Cryptographic Provenance Chain & Comparator */}
+      <ThreeDProvenanceChain
+        mode={activeTab === 'compare' ? 'compare' : 'chain'}
+        matchPercentage={comparisonResult ? Math.round(comparisonResult.similarity_score * 100) : 94.2}
+        hammingDistance={comparisonResult ? Math.round((1 - comparisonResult.similarity_score) * 64) : 4}
+      />
 
       {/* TAB 1: Comparison Tool */}
       {activeTab === 'compare' && (

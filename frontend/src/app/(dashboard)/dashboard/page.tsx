@@ -23,9 +23,15 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recha
 import { adminAPI, verificationAPI } from '@/lib/api';
 import { DashboardStats, VerificationRequest } from '@/lib/types';
 import { formatDate, getRiskBgColor, getRiskColor, getRiskLabel } from '@/lib/utils';
+import dynamic from 'next/dynamic';
 import StatCard from '@/components/dashboard/StatCard';
 import EngineStatusBadge from '@/components/engines/EngineStatusBadge';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
+
+const ThreeDIntegrityCore = dynamic(
+  () => import('@/components/3d/ThreeDIntegrityCore'),
+  { ssr: false }
+);
 
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -126,6 +132,9 @@ export default function DashboardPage() {
           </Link>
         </div>
       </div>
+
+      {/* 3D Interactive Forensic Integrity Core & Orbiting Satellites */}
+      <ThreeDIntegrityCore />
 
       {/* 4 Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">

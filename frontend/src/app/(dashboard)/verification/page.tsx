@@ -19,9 +19,15 @@ import {
 import { verificationAPI } from '@/lib/api';
 import { VerificationRequest } from '@/lib/types';
 import { formatDate, getRiskBgColor, getRiskColor, getRiskLabel } from '@/lib/utils';
+import dynamic from 'next/dynamic';
 import EngineStatusBadge from '@/components/engines/EngineStatusBadge';
 import EmptyState from '@/components/ui/EmptyState';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
+
+const ThreeDEvidenceChamber = dynamic(
+  () => import('@/components/3d/ThreeDEvidenceChamber'),
+  { ssr: false }
+);
 
 export default function VerificationHubPage() {
   const [verifications, setVerifications] = useState<VerificationRequest[]>([]);
@@ -101,6 +107,14 @@ export default function VerificationHubPage() {
           <ArrowRight className="w-4 h-4 ml-1.5" />
         </Link>
       </div>
+
+      {/* 3D Holographic Evidence Vault */}
+      <ThreeDEvidenceChamber
+        verdict={verifications[0]?.risk_assessment?.risk_category ?? 'low_risk'}
+        sha256={verifications[0]?.file?.sha256_hash ?? 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'}
+        filename={verifications[0]?.file?.filename ?? 'master_evidence_vault.bin'}
+        confidence={97.8}
+      />
 
       {/* Filter and Search Bar */}
       <div className="glass-card p-4 flex flex-col md:flex-row items-center justify-between gap-4">

@@ -18,11 +18,17 @@ import {
 } from 'lucide-react';
 import { filesAPI, engineAPI } from '@/lib/api';
 import { DocumentAnalysisResult, Finding } from '@/lib/types';
+import dynamic from 'next/dynamic';
 import FileUploadZone from '@/components/ui/FileUploadZone';
 import FindingsList from '@/components/engines/FindingsList';
 import RiskGauge from '@/components/dashboard/RiskGauge';
 import Badge from '@/components/ui/Badge';
 import { formatDate } from '@/lib/utils';
+
+const ThreeDDocumentStack = dynamic(
+  () => import('@/components/3d/ThreeDDocumentStack'),
+  { ssr: false }
+);
 
 export default function DocumentVerifierPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -89,43 +95,61 @@ export default function DocumentVerifierPage() {
         </div>
       )}
 
-      {/* Upload Zone */}
-      <div className="glass-card p-6">
-        <FileUploadZone
-          onFileSelect={handleFileSelect}
-          selectedFile={selectedFile}
-          onClear={() => {
-            setSelectedFile(null);
-            setResult(null);
-          }}
-          uploading={analyzing}
-          progress={progress}
-          accept=".pdf,.doc,.docx"
-          label="Drop PDF or document file to inspect"
-          sublabel="Accepts PDF, DOCX up to 50MB"
-        />
+      {/* 3D Interactive Exploded Document Stack */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <div className="lg:col-span-7">
+          <ThreeDDocumentStack
+            tamperCount={result?.findings?.length || 2}
+            fontMismatchCount={result?.font_analysis?.anomalous_fonts?.length ?? 3}
+            hasSignature={Boolean(result?.digital_signature?.present)}
+          />
+        </div>
+        <div className="lg:col-span-5 space-y-4">
+          <div className="glass-card p-6">
+            <h3 className="text-sm font-bold text-gray-200 mb-2 flex items-center gap-2">
+              <FileSearch className="w-4 h-4 text-cyan-400" />
+              <span>Document Forensic Intake</span>
+            </h3>
+            <p className="text-xs text-gray-400 mb-4">
+              Ingest PDF containers and legal contracts to evaluate 3D object stream integrity, font descriptor tampering, and hidden incremental revisions.
+            </p>
+            <FileUploadZone
+              onFileSelect={handleFileSelect}
+              selectedFile={selectedFile}
+              onClear={() => {
+                setSelectedFile(null);
+                setResult(null);
+              }}
+              uploading={analyzing}
+              progress={progress}
+              accept=".pdf,.doc,.docx"
+              label="Drop PDF or document file to inspect"
+              sublabel="Accepts PDF, DOCX up to 50MB"
+            />
 
-        {selectedFile && !result && (
-          <div className="mt-4 flex justify-end">
-            <button
-              onClick={handleAnalyze}
-              disabled={analyzing}
-              className="btn-primary py-2.5 px-6 text-sm font-semibold flex items-center gap-2"
-            >
-              {analyzing ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Analyzing Object Streams...</span>
-                </>
-              ) : (
-                <>
-                  <span>Run Document Forensics</span>
-                  <ArrowRight className="w-4 h-4" />
-                </>
-              )}
-            </button>
+            {selectedFile && !result && (
+              <div className="mt-4 flex justify-end">
+                <button
+                  onClick={handleAnalyze}
+                  disabled={analyzing}
+                  className="btn-primary w-full py-2.5 px-6 text-sm font-semibold flex items-center justify-center gap-2"
+                >
+                  {analyzing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Analyzing Object Streams...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Run Document Forensics</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
 
       {/* Analysis Results Display */}

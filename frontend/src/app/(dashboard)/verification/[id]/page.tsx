@@ -31,8 +31,14 @@ import FindingsList from '@/components/engines/FindingsList';
 import EngineStatusBadge from '@/components/engines/EngineStatusBadge';
 import VerificationTimeline from '@/components/report/VerificationTimeline';
 import TrustGraphView from '@/components/graph/TrustGraphView';
+import dynamic from 'next/dynamic';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import Badge from '@/components/ui/Badge';
+
+const ThreeDEvidenceChamber = dynamic(
+  () => import('@/components/3d/ThreeDEvidenceChamber'),
+  { ssr: false }
+);
 
 export default function VerificationReportPage() {
   const params = useParams();
@@ -173,6 +179,14 @@ export default function VerificationReportPage() {
           <span>Export Certified PDF</span>
         </button>
       </div>
+
+      {/* 3D Holographic Evidence Chamber */}
+      <ThreeDEvidenceChamber
+        verdict={verification.risk_assessment?.risk_category ?? 'low_risk'}
+        sha256={verification.file?.sha256_hash ?? 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'}
+        filename={verification.file?.filename ?? 'evidence_artifact.bin'}
+        confidence={verification.risk_assessment?.overall_score ? 100 - verification.risk_assessment.overall_score : 96.5}
+      />
 
       {/* Target File Information & Risk Score Banner */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
