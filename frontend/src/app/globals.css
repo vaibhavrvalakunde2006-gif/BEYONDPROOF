@@ -1,0 +1,76 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+  }
+  
+  body {
+    @apply bg-gray-950 text-gray-50 antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  * {
+    @apply border-gray-800;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-gray-900/50 backdrop-blur-xl border border-gray-800/50 rounded-xl shadow-xl shadow-black/20;
+  }
+  
+  .glass-card-hover {
+    @apply bg-gray-900/50 backdrop-blur-xl border border-gray-800/50 rounded-xl shadow-xl shadow-black/20 hover:border-violet-500/40 hover:bg-gray-900/70 transition-all duration-300;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-violet-400 via-purple-300 to-cyan-400 bg-clip-text text-transparent;
+  }
+  
+  .btn-primary {
+    @apply inline-flex items-center justify-center bg-violet-600 hover:bg-violet-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 hover:shadow-lg hover:shadow-violet-600/25 active:scale-95 disabled:opacity-50 disabled:pointer-events-none;
+  }
+  
+  .btn-secondary {
+    @apply inline-flex items-center justify-center bg-gray-800 hover:bg-gray-700 text-gray-200 px-6 py-3 rounded-lg font-medium transition-all duration-200 border border-gray-700 active:scale-95 disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  .cyber-badge {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold tracking-wide border;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #030712; }
+::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #4b5563; }
+
+/* React Flow Dark Theme Overrides */
+.react-flow__background {
+  background-color: #030712 !important;
+}
+.react-flow__controls {
+  background: #111827 !important;
+  border: 1px solid #1f2937 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+}
+.react-flow__controls-button {
+  background: #111827 !important;
+  border-bottom: 1px solid #1f2937 !important;
+  fill: #9ca3af !important;
+}
+.react-flow__controls-button:hover {
+  background: #1f2937 !important;
+  fill: #f9fafb !important;
+}
+.react-flow__minimap {
+  background-color: #0a0e1a !important;
+  border: 1px solid #1f2937 !important;
+  border-radius: 8px !important;
+}

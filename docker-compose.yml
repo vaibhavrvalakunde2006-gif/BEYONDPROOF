@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:///./beyondproof.db
+      - SECRET_KEY=beyondproof-production-secret-change-me
+      - ALLOWED_ORIGINS=http://localhost:3000
+    volumes:
+      - upload_data:/app/uploads
+      - db_data:/app
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+
+volumes:
+  upload_data:
+  db_data:
