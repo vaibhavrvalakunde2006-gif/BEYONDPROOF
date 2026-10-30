@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>BEYONDPROOF — The Universal Digital Trust & Forensic Verification Platform</title>
+  
+  <!-- Anta Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anta&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* =====================================================================
+       RESET & ROOT VARIABLES
+       Reference Stage: 894 x 541
+       Scale Unit: --p = min(100vw / 894, 100svh / 541)
+       ===================================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #000000;
+      --text-primary: #FFFFFF;
+      --text-secondary: #B8B8C2;
+      --accent-orange: #FF7A24;
+      --bright-amber: #FFB347;
+      --forensic-cyan: #55DDF5;
+      --violet-accent: #9270FF;
+      --glass-bg: rgba(255, 120, 40, 0.14);
+      --badge-bg: rgba(220, 110, 40, 0.16);
+      --btn-text: #030303;
+
+      /* Reference Stage Scaling */
+      --p: min(100vw / 894, 100svh / 541);
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg);
+      color: var(--text-primary);
+      font-family: 'Anta', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-weight: 400;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      user-select: none;
+    }
+
+    /* Full-screen Stage Frame */
+    .stage {
+      position: relative;
+      width: 100vw;
+      height: 100svh;
+      max-width: 100%;
+      max-height: 100%;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      background: radial-gradient(circle at 50% 100%, rgba(255, 122, 36, 0.08) 0%, rgba(0, 0, 0, 0.95) 70%, #000000 100%);
+    }
+
+    /* Ambient Cinematic Background Elements */
+    .ambient-glow {
+      position: absolute;
+      bottom: -150px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(650 * var(--p));
+      height: calc(320 * var(--p));
+      background: radial-gradient(ellipse at 50% 100%, rgba(255, 122, 36, 0.28) 0%, rgba(255, 179, 71, 0.12) 40%, rgba(146, 112, 255, 0.04) 65%, transparent 80%);
+      filter: blur(50px);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Background Forensic Grid Lines (Subtle) */
+    .forensic-grid {
+      position: absolute;
+      inset: 0;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+      background-size: calc(36 * var(--p)) calc(36 * var(--p));
+      background-position: center bottom;
+      mask-image: radial-gradient(ellipse at 50% 100%, black 20%, transparent 75%);
+      -webkit-mask-image: radial-gradient(ellipse at 50% 100%, black 20%, transparent 75%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* =====================================================================
+       NAVIGATION BAR
+       ===================================================================== */
+    .navbar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: calc(52 * var(--p));
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 calc(36 * var(--p));
+      z-index: 50;
+    }
+
+    /* Left Brand */
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: calc(9 * var(--p));
+      text-decoration: none;
+      color: var(--text-primary);
+      cursor: pointer;
+    }
+
+    .brand-logo-mark {
+      width: calc(26 * var(--p));
+      height: calc(26 * var(--p));
+      background: #FFFFFF;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 calc(14 * var(--p)) rgba(255, 255, 255, 0.45);
+      position: relative;
+    }
+
+    .brand-logo-mark svg {
+      width: calc(15 * var(--p));
+      height: calc(15 * var(--p));
+      fill: #000000;
+    }
+
+    .brand-name {
+      font-size: calc(23.8 * var(--p));
+      font-weight: 400;
+      letter-spacing: calc(0.8 * var(--p));
+      color: #FFFFFF;
+      text-transform: uppercase;
+      line-height: 1;
+    }
+
+    /* Center Nav Links */
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: calc(22 * var(--p));
+      list-style: none;
+    }
+
+    .nav-links li a {
+      font-size: calc(10.7 * var(--p));
+      color: var(--text-secondary);
+      text-decoration: none;
+      letter-spacing: calc(0.3 * var(--p));
+      transition: color 0.25s ease, text-shadow 0.25s ease;
+      position: relative;
+      padding: calc(4 * var(--p)) calc(2 * var(--p));
+    }
+
+    .nav-links li a:hover {
+      color: #FFFFFF;
+      text-shadow: 0 0 calc(8 * var(--p)) rgba(255, 255, 255, 0.5);
+    }
+
+    .nav-links li a::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      width: 0;
+      height: 1px;
+      background: var(--accent-orange);
+      transition: width 0.25s ease, left 0.25s ease;
+    }
+
+    .nav-links li a:hover::after {
+      width: 100%;
+      left: 0;
+    }
+
+    /* Right Auth */
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: calc(12 * var(--p));
+    }
+
+    .login-btn {
+      display: flex;
+      align-items: center;
+      gap: calc(6 * var(--p));
+      padding: calc(6 * var(--p)) calc(14 * var(--p));
+      border-radius: calc(20 * var(--p));
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--text-primary);
+      text-decoration: none;
+      font-size: calc(10.7 * var(--p));
+      letter-spacing: calc(0.2 * var(--p));
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: pointer;
+    }
+
+    .login-btn svg {
+      width: calc(11 * var(--p));
+      height: calc(11 * var(--p));
+      stroke: var(--text-secondary);
+      transition: stroke 0.25s ease;
+    }
+
+    .login-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 122, 36, 0.4);
+      box-shadow: 0 0 calc(12 * var(--p)) rgba(255, 122, 36, 0.25);
+    }
+
+    .login-btn:hover svg {
+      stroke: var(--accent-orange);
+    }
+
+    /* Mobile Hamburger */
+    .mobile-menu-btn {
+      display: none;
+      width: calc(34 * var(--p));
+      height: calc(34 * var(--p));
+      border-radius: 50%;
+      background: rgba(255, 122, 36, 0.12);
+      border: 1px solid rgba(255, 122, 36, 0.3);
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #FFFFFF;
+      transition: all 0.25s ease;
+    }
+
+    .mobile-menu-btn:hover {
+      background: rgba(255, 122, 36, 0.22);
+      box-shadow: 0 0 calc(10 * var(--p)) rgba(255, 122, 36, 0.4);
+    }
+
+    /* Mobile Dropdown */
+    .mobile-dropdown {
+      position: absolute;
+      top: calc(52 * var(--p));
+      right: calc(20 * var(--p));
+      width: calc(200 * var(--p));
+      background: rgba(12, 12, 16, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 122, 36, 0.3);
+      border-radius: calc(14 * var(--p));
+      padding: calc(12 * var(--p));
+      display: none;
+      flex-direction: column;
+      gap: calc(10 * var(--p));
+      box-shadow: 0 calc(10 * var(--p)) calc(30 * var(--p)) rgba(0, 0, 0, 0.8), 0 0 calc(20 * var(--p)) rgba(255, 122, 36, 0.15);
+      z-index: 100;
+    }
+
+    .mobile-dropdown.open {
+      display: flex;
+    }
+
+    .mobile-dropdown a {
+      font-size: calc(11 * var(--p));
+      color: var(--text-secondary);
+      text-decoration: none;
+      padding: calc(6 * var(--p)) calc(8 * var(--p));
+      border-radius: calc(6 * var(--p));
+      transition: all 0.2s ease;
+    }
+
+    .mobile-dropdown a:hover {
+      color: #FFFFFF;
+      background: rgba(255, 122, 36, 0.15);
+    }
+
+    /* =====================================================================
+       HERO CENTER CONTENT
+       ===================================================================== */
+    .hero-container {
+      position: absolute;
+      top: 45%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100%;
+      max-width: calc(780 * var(--p));
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      z-index: 20;
+      padding: 0 calc(20 * var(--p));
+      pointer-events: none;
+    }
+
+    .hero-interactive {
+      pointer-events: auto;
+    }
+
+    /* Ember-Glass Badge */
+    .badge-wrapper {
+      margin-bottom: calc(14 * var(--p));
+      display: inline-flex;
+    }
+
+    .ember-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: calc(7 * var(--p));
+      padding: calc(3.5 * var(--p)) calc(11 * var(--p)) calc(3.5 * var(--p)) calc(5 * var(--p));
+      background: var(--badge-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 122, 36, 0.35);
+      border-radius: calc(20 * var(--p));
+      box-shadow: 0 0 calc(14 * var(--p)) rgba(255, 122, 36, 0.15), inset 0 0 calc(8 * var(--p)) rgba(255, 179, 71, 0.08);
+      cursor: default;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .ember-badge:hover {
+      box-shadow: 0 0 calc(20 * var(--p)) rgba(255, 122, 36, 0.3);
+      transform: translateY(-1px);
+    }
+
+    .badge-chip {
+      background: #FFFFFF;
+      color: #030303;
+      font-size: calc(7.5 * var(--p));
+      font-weight: 700;
+      padding: calc(1.5 * var(--p)) calc(6 * var(--p));
+      border-radius: calc(12 * var(--p));
+      letter-spacing: calc(0.4 * var(--p));
+      line-height: 1;
+    }
+
+    .badge-label {
+      font-size: calc(9.5 * var(--p));
+      color: rgba(255, 255, 255, 0.92);
+      letter-spacing: calc(0.3 * var(--p));
+      font-weight: 400;
+    }
+
+    .badge-sparkle {
+      width: calc(10 * var(--p));
+      height: calc(10 * var(--p));
+      fill: var(--bright-amber);
+      animation: pulse-sparkle 2.5s infinite ease-in-out;
+    }
+
+    @keyframes pulse-sparkle {
+      0%, 100% { opacity: 0.7; transform: scale(0.9); }
+      50% { opacity: 1; transform: scale(1.15); filter: drop-shadow(0 0 4px var(--bright-amber)); }
+    }
+
+    /* Main Headline (Clip Mask for Entrance) */
+    .headline-mask {
+      overflow: hidden;
+      margin-bottom: calc(10 * var(--p));
+    }
+
+    .main-headline {
+      font-size: calc(38 * var(--p));
+      line-height: calc(47 * var(--p));
+      font-weight: 400;
+      letter-spacing: calc(0.5 * var(--p));
+      text-transform: uppercase;
+      color: var(--text-primary);
+      text-shadow: 0 calc(4 * var(--p)) calc(20 * var(--p)) rgba(0, 0, 0, 0.8);
+    }
+
+    .headline-gradient {
+      background: linear-gradient(135deg, #FFFFFF 0%, #FFB347 45%, #FF7A24 85%, #FF5500 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: block;
+      filter: drop-shadow(0 0 calc(18 * var(--p)) rgba(255, 122, 36, 0.45));
+    }
+
+    /* Subheadline */
+    .subheadline {
+      font-family: 'Inter', sans-serif;
+      font-size: calc(10.7 * var(--p));
+      line-height: calc(16 * var(--p));
+      font-weight: 400;
+      color: var(--text-secondary);
+      max-width: calc(520 * var(--p));
+      margin-bottom: calc(22 * var(--p));
+      text-shadow: 0 calc(2 * var(--p)) calc(10 * var(--p)) rgba(0, 0, 0, 0.9);
+    }
+
+    /* Action Buttons Group */
+    .cta-group {
+      display: flex;
+      align-items: center;
+      gap: calc(14 * var(--p));
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: calc(7 * var(--p));
+      padding: calc(9 * var(--p)) calc(22 * var(--p));
+      background: #FFFFFF;
+      color: var(--btn-text);
+      border: none;
+      border-radius: calc(30 * var(--p));
+      font-family: 'Anta', sans-serif;
+      font-size: calc(10.7 * var(--p));
+      font-weight: 600;
+      letter-spacing: calc(0.4 * var(--p));
+      text-decoration: none;
+      cursor: pointer;
+      box-shadow: 0 0 calc(20 * var(--p)) rgba(255, 255, 255, 0.35);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .btn-primary svg {
+      width: calc(12 * var(--p));
+      height: calc(12 * var(--p));
+      transition: transform 0.25s ease;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(calc(-2.5 * var(--p)));
+      box-shadow: 0 calc(8 * var(--p)) calc(28 * var(--p)) rgba(255, 122, 36, 0.65), 0 0 calc(12 * var(--p)) #FFFFFF;
+    }
+
+    .btn-primary:hover svg {
+      transform: translateX(calc(3 * var(--p)));
+    }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: calc(7 * var(--p));
+      padding: calc(9 * var(--p)) calc(20 * var(--p));
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 122, 36, 0.4);
+      border-radius: calc(30 * var(--p));
+      color: #FFFFFF;
+      font-family: 'Anta', sans-serif;
+      font-size: calc(10.7 * var(--p));
+      font-weight: 400;
+      letter-spacing: calc(0.4 * var(--p));
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .btn-secondary svg {
+      width: calc(11 * var(--p));
+      height: calc(11 * var(--p));
+      fill: var(--accent-orange);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 122, 36, 0.24);
+      border-color: rgba(255, 179, 71, 0.7);
+      transform: translateY(calc(-2 * var(--p)));
+      box-shadow: 0 0 calc(22 * var(--p)) rgba(255, 122, 36, 0.35);
+    }
+
+    /* =====================================================================
+       CENTRAL FORENSIC SCANNER APERTURE (THE CENTERPIECE)
+       ===================================================================== */
+    .scanner-stage {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(720 * var(--p));
+      height: calc(290 * var(--p));
+      overflow: visible;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    /* The Main Outer Aperture Dome */
+    .aperture-core {
+      position: absolute;
+      bottom: calc(-180 * var(--p));
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(560 * var(--p));
+      height: calc(560 * var(--p));
+      border-radius: 50%;
+      background: #000000;
+      box-shadow: 
+        0 0 calc(50 * var(--p)) rgba(255, 122, 36, 0.4),
+        0 0 calc(100 * var(--p)) rgba(255, 85, 0, 0.25),
+        inset 0 0 calc(40 * var(--p)) rgba(0, 0, 0, 0.95);
+      border: 1px solid rgba(255, 122, 36, 0.5);
+    }
+
+    /* White-Hot Inner Edge Ring */
+    .aperture-white-rim {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      box-shadow: 
+        inset 0 0 calc(12 * var(--p)) #FFFFFF,
+        inset 0 0 calc(28 * var(--p)) var(--bright-amber),
+        inset 0 0 calc(60 * var(--p)) var(--accent-orange),
+        0 0 calc(18 * var(--p)) #FFFFFF,
+        0 0 calc(40 * var(--p)) var(--bright-amber);
+      pointer-events: none;
+    }
+
+    /* Molten Energy Crown (Top Arc of Circle) */
+    .aperture-molten-arc {
+      position: absolute;
+      top: -2px;
+      left: 10%;
+      width: 80%;
+      height: 40%;
+      border-top: calc(3 * var(--p)) solid #FFFFFF;
+      border-radius: 50% 50% 0 0;
+      filter: drop-shadow(0 0 calc(16 * var(--p)) var(--accent-orange)) drop-shadow(0 0 calc(6 * var(--p)) #FFFFFF);
+    }
+
+    /* SVG Reticle & Biometric Fingerprint Vector */
+    .scanner-svg-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    /* Laser Scanning Sweep Beam */
+    .scanning-laser-beam {
+      position: absolute;
+      left: 10%;
+      width: 80%;
+      height: calc(2 * var(--p));
+      background: linear-gradient(90deg, transparent 0%, rgba(85, 221, 245, 0.3) 15%, #FFFFFF 50%, var(--accent-orange) 85%, transparent 100%);
+      box-shadow: 0 0 calc(14 * var(--p)) var(--forensic-cyan), 0 0 calc(8 * var(--p)) #FFFFFF;
+      opacity: 0.85;
+      animation: laser-sweep 4.5s infinite ease-in-out;
+      border-radius: 50%;
+    }
+
+    @keyframes laser-sweep {
+      0% {
+        top: 2%;
+        opacity: 0.1;
+        transform: scaleX(0.7);
+      }
+      20% {
+        opacity: 0.9;
+        transform: scaleX(1);
+      }
+      50% {
+        top: 38%;
+        opacity: 0.95;
+        transform: scaleX(1.05);
+      }
+      80% {
+        opacity: 0.85;
+        transform: scaleX(0.95);
+      }
+      100% {
+        top: 2%;
+        opacity: 0.1;
+        transform: scaleX(0.7);
+      }
+    }
+
+    /* Technical HUD Telemetry Labels */
+    .hud-label {
+      position: absolute;
+      font-size: calc(7.5 * var(--p));
+      font-family: 'Anta', monospace;
+      color: rgba(255, 179, 71, 0.75);
+      letter-spacing: calc(1 * var(--p));
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: calc(5 * var(--p));
+      pointer-events: none;
+    }
+
+    .hud-label::before {
+      content: '';
+      width: calc(4 * var(--p));
+      height: calc(4 * var(--p));
+      border-radius: 50%;
+      background: var(--accent-orange);
+      box-shadow: 0 0 calc(6 * var(--p)) var(--accent-orange);
+    }
+
+    .hud-top-left {
+      top: calc(20 * var(--p));
+      left: calc(30 * var(--p));
+    }
+
+    .hud-top-right {
+      top: calc(20 * var(--p));
+      right: calc(30 * var(--p));
+    }
+
+    .hud-bottom-left {
+      bottom: calc(40 * var(--p));
+      left: calc(45 * var(--p));
+    }
+
+    .hud-bottom-right {
+      bottom: calc(40 * var(--p));
+      right: calc(45 * var(--p));
+    }
+
+    /* Canvas for Floating Forensic Particles & Light Streaks */
+    #forensic-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 12;
+    }
+
+    /* Bottom Decorative Platform Border */
+    .stage-baseline {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent 0%, rgba(255, 122, 36, 0.3) 25%, #FFFFFF 50%, rgba(255, 122, 36, 0.3) 75%, transparent 100%);
+      z-index: 40;
+    }
+
+    /* =====================================================================
+       RESPONSIVE DESIGN & MEDIA QUERIES
+       ===================================================================== */
+    @media (max-width: 768px) {
+      :root {
+        --p: max(min(100vw / 600, 100svh / 650), 0.75);
+      }
+
+      .nav-links {
+        display: none;
+      }
+
+      .mobile-menu-btn {
+        display: flex;
+      }
+
+      .brand-name {
+        font-size: calc(18 * var(--p));
+      }
+
+      .main-headline {
+        font-size: clamp(24px, 6.5vw, 36px);
+        line-height: 1.25;
+      }
+
+      .subheadline {
+        font-size: clamp(11px, 2.8vw, 14px);
+        line-height: 1.45;
+        margin-bottom: calc(18 * var(--p));
+      }
+
+      .cta-group {
+        flex-direction: column;
+        width: 100%;
+        max-width: 280px;
+        gap: 10px;
+      }
+
+      .btn-primary, .btn-secondary {
+        width: 100%;
+        justify-content: center;
+        padding: 10px 18px;
+        font-size: 12px;
+      }
+
+      .scanner-stage {
+        width: 100vw;
+        height: 220px;
+      }
+
+      .aperture-core {
+        width: 380px;
+        height: 380px;
+        bottom: -150px;
+      }
+
+      .hud-label {
+        font-size: 8px;
+      }
+
+      .hud-top-left, .hud-top-right {
+        top: 8px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .navbar {
+        padding: 0 16px;
+      }
+      
+      .hero-container {
+        top: 42%;
+      }
+
+      .aperture-core {
+        width: 320px;
+        height: 320px;
+        bottom: -130px;
+      }
+
+      .hud-bottom-left, .hud-bottom-right {
+        display: none;
+      }
+    }
+
+    /* Accessibility: Reduced Motion */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+      .scanning-laser-beam {
+        animation: none;
+        top: 25%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="stage">
+    <!-- Background Forensic Grid -->
+    <div class="forensic-grid"></div>
+    <div class="ambient-glow"></div>
+
+    <!-- ===================================================================
+         NAVIGATION
+         =================================================================== -->
+    <header class="navbar" id="navbar">
+      <!-- Left Logo -->
+      <a href="/" class="brand" aria-label="BEYONDPROOF Homepage">
+        <div class="brand-logo-mark">
+          <!-- 4-point forensic sparkle/shield SVG cut-out -->
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2L14.4 9.6L22 12L14.4 14.4L12 22L9.6 14.4L2 12L9.6 9.6L12 2Z" />
+          </svg>
+        </div>
+        <span class="brand-name">BEYONDPROOF</span>
+      </a>
+
+      <!-- Center Links -->
+      <ul class="nav-links">
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#technology">Technology</a></li>
+        <li><a href="#seven-engines">Seven Engines</a></li>
+        <li><a href="#how-it-works">How It Works</a></li>
+        <li><a href="#about">About</a></li>
+      </ul>
+
+      <!-- Right Login & Mobile Hamburger -->
+      <div class="nav-actions">
+        <a href="http://localhost:3000/login" class="login-btn" id="loginBtn">
+          <!-- Minimal User Icon -->
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+          <span>Log In</span>
+        </a>
+
+        <!-- Hamburger for Mobile -->
+        <button class="mobile-menu-btn" id="hamburgerBtn" aria-label="Toggle navigation menu">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Mobile Dropdown -->
+      <div class="mobile-dropdown" id="mobileDropdown">
+        <a href="#overview">Overview</a>
+        <a href="#technology">Technology</a>
+        <a href="#seven-engines">Seven Engines</a>
+        <a href="#how-it-works">How It Works</a>
+        <a href="#about">About</a>
+        <a href="http://localhost:3000/login" style="color: var(--accent-orange); font-weight: 600;">Log In &rarr;</a>
+      </div>
+    </header>
+
+    <!-- ===================================================================
+         HERO MAIN CONTENT
+         =================================================================== -->
+    <main class="hero-container" id="heroContainer">
+      <!-- Ember-Glass Badge -->
+      <div class="badge-wrapper hero-interactive" id="heroBadge">
+        <div class="ember-badge">
+          <span class="badge-chip">NEW</span>
+          <span class="badge-label">Digital Trust Intelligence</span>
+          <!-- Forensic Sparkle -->
+          <svg class="badge-sparkle" viewBox="0 0 24 24">
+            <path d="M12 0L14.6 9.4L24 12L14.6 14.6L12 24L9.4 14.6L0 12L9.4 9.4L12 0Z" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- Main Headline with Reveal Mask -->
+      <div class="headline-mask">
+        <h1 class="main-headline" id="heroHeadline">
+          IN A WORLD OF<br>
+          FAKE EVERYTHING.<br>
+          <span class="headline-gradient">VERIFY WHAT'S REAL.</span>
+        </h1>
+      </div>
+
+      <!-- Subheadline -->
+      <p class="subheadline" id="heroSubheadline">
+        Investigate digital authenticity through AI-powered forensic analysis, cryptographic verification and intelligent provenance tracking.
+      </p>
+
+      <!-- Primary Action Buttons -->
+      <div class="cta-group hero-interactive" id="heroButtons">
+        <a href="http://localhost:3000/verification" class="btn-primary" id="startVerificationBtn">
+          <span>START VERIFICATION</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </a>
+
+        <a href="http://localhost:3000/dashboard" class="btn-secondary" id="explorePlatformBtn">
+          <!-- Play / Explore Icon -->
+          <svg viewBox="0 0 24 24">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+          <span>EXPLORE PLATFORM</span>
+        </a>
+      </div>
+    </main>
+
+    <!-- ===================================================================
+         CENTRAL FORENSIC SCANNER APERTURE (PORTAL CORE)
+         =================================================================== -->
+    <div class="scanner-stage" id="scannerStage">
+      <!-- Particle and Light-Streak Canvas -->
+      <canvas id="forensic-canvas"></canvas>
+
+      <!-- Technical Telemetry HUD Labels -->
+      <div class="hud-label hud-top-left">FORENSIC ENGINE: READY</div>
+      <div class="hud-label hud-top-right">DIGITAL INTEGRITY &bull; 100%</div>
+      <div class="hud-label hud-bottom-left">PROVENANCE ANALYSIS ACTIVE</div>
+      <div class="hud-label hud-bottom-right">SHA-256 VERIFICATION</div>
+
+      <!-- The Core Aperture -->
+      <div class="aperture-core">
+        <!-- Molten Illuminated Arc -->
+        <div class="aperture-molten-arc"></div>
+        <div class="aperture-white-rim"></div>
+
+        <!-- Laser Scanning Beam -->
+        <div class="scanning-laser-beam"></div>
+
+        <!-- Forensic Reticle & Biometric Fingerprint Geometry SVG -->
+        <svg class="scanner-svg-overlay" viewBox="0 0 560 560" fill="none">
+          <defs>
+            <!-- Amber-Orange Gradient -->
+            <radialGradient id="apertureGradient" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#000000" stop-opacity="0.95" />
+              <stop offset="70%" stop-color="#140600" stop-opacity="0.8" />
+              <stop offset="92%" stop-color="#FF7A24" stop-opacity="0.3" />
+              <stop offset="100%" stop-color="#FFB347" stop-opacity="0.7" />
+            </radialGradient>
+            
+            <linearGradient id="scanBeamGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#55DDF5" stop-opacity="0" />
+              <stop offset="50%" stop-color="#55DDF5" stop-opacity="0.8" />
+              <stop offset="100%" stop-color="#55DDF5" stop-opacity="0" />
+            </linearGradient>
+          </defs>
+
+          <!-- Outer Concentric Reticle Rings -->
+          <circle cx="280" cy="280" r="275" stroke="rgba(255, 122, 36, 0.45)" stroke-width="1.5" stroke-dasharray="4 6" />
+          <circle cx="280" cy="280" r="255" stroke="rgba(255, 179, 71, 0.25)" stroke-width="1" />
+          <circle cx="280" cy="280" r="235" stroke="rgba(255, 255, 255, 0.15)" stroke-width="0.8" stroke-dasharray="12 8 2 8" />
+          <circle cx="280" cy="280" r="200" stroke="rgba(255, 122, 36, 0.3)" stroke-width="1" stroke-dasharray="2 4" />
+          <circle cx="280" cy="280" r="160" stroke="rgba(85, 221, 245, 0.25)" stroke-width="1" />
+          <circle cx="280" cy="280" r="120" stroke="rgba(255, 122, 36, 0.2)" stroke-width="1" stroke-dasharray="6 6" />
+
+          <!-- Radial Tech Ticks (Degrees) -->
+          <g stroke="rgba(255, 179, 71, 0.4)" stroke-width="1">
+            <line x1="280" y1="10" x2="280" y2="24" />
+            <line x1="280" y1="536" x2="280" y2="550" />
+            <line x1="10" y1="280" x2="24" y2="280" />
+            <line x1="536" y1="280" x2="550" y2="280" />
+            <!-- Diagonals -->
+            <line x1="89" y1="89" x2="100" y2="100" />
+            <line x1="471" y1="89" x2="460" y2="100" />
+            <line x1="89" y1="471" x2="100" y2="460" />
+            <line x1="471" y1="471" x2="460" y2="460" />
+          </g>
+
+          <!-- Digital Biometric Fingerprint Ridges (Vectorized Forensic Core) -->
+          <g stroke="rgba(255, 122, 36, 0.4)" stroke-width="1.6" stroke-linecap="round" fill="none">
+            <!-- Center Core Whorl -->
+            <ellipse cx="280" cy="250" rx="14" ry="22" stroke="rgba(255, 255, 255, 0.6)" stroke-width="2" />
+            <path d="M 280,220 C 265,220 256,235 256,252 C 256,275 270,290 280,300 C 290,290 304,275 304,252 C 304,235 295,220 280,220" />
+            
+            <!-- Loop 2 -->
+            <path d="M 280,200 C 250,200 238,225 238,255 C 238,290 262,315 280,330 C 298,315 322,290 322,255 C 322,225 310,200 280,200" stroke-dasharray="120 4 30 5" />
+            
+            <!-- Loop 3 -->
+            <path d="M 280,180 C 235,180 220,215 220,258 C 220,305 250,338 280,358 C 310,338 340,305 340,258 C 340,215 325,180 280,180" stroke="rgba(255, 179, 71, 0.5)" />
+            
+            <!-- Loop 4 (Forensic Verification Arch) -->
+            <path d="M 280,160 C 220,160 200,205 200,260 C 200,320 240,360 280,385 C 320,360 360,320 360,260 C 360,205 340,160 280,160" stroke-dasharray="90 8 40 6 70 8" />
+
+            <!-- Loop 5 (Outer Ridges) -->
+            <path d="M 280,140 C 205,140 180,195 180,265 C 180,335 230,380 280,410 C 330,380 380,335 380,265 C 380,195 355,140 280,140" stroke="rgba(85, 221, 245, 0.35)" />
+
+            <!-- Forensic Delta Marks (Triangular Evidence Points) -->
+            <polygon points="210,265 214,272 206,272" fill="var(--bright-amber)" stroke="none" />
+            <polygon points="350,265 354,272 346,272" fill="var(--bright-amber)" stroke="none" />
+            <circle cx="280" cy="250" r="3" fill="#FFFFFF" stroke="none" />
+          </g>
+
+          <!-- Connected Network Security Nodes (Top Arch of Aperture) -->
+          <g stroke="rgba(255, 179, 71, 0.3)" stroke-width="0.8">
+            <line x1="200" y1="80" x2="240" y2="50" />
+            <line x1="240" y1="50" x2="280" y2="40" />
+            <line x1="280" y1="40" x2="320" y2="50" />
+            <line x1="320" y1="50" x2="360" y2="80" />
+            
+            <!-- Nodes -->
+            <circle cx="200" cy="80" r="2.5" fill="var(--forensic-cyan)" />
+            <circle cx="240" cy="50" r="3" fill="var(--accent-orange)" />
+            <circle cx="280" cy="40" r="3.5" fill="#FFFFFF" />
+            <circle cx="320" cy="50" r="3" fill="var(--accent-orange)" />
+            <circle cx="360" cy="80" r="2.5" fill="var(--forensic-cyan)" />
+          </g>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Bottom Stage Baseline Line -->
+    <div class="stage-baseline"></div>
+  </div>
+
+  <!-- =====================================================================
+       SCRIPTS: ENTRANCE ANIMATION (WAAPI) & CANVAS PARTICLES
+       ===================================================================== */ -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // -------------------------------------------------------------
+      // 1. MOBILE MENU TOGGLE
+      // -------------------------------------------------------------
+      const hamburger = document.getElementById('hamburgerBtn');
+      const mobileDropdown = document.getElementById('mobileDropdown');
+
+      if (hamburger && mobileDropdown) {
+        hamburger.addEventListener('click', (e) => {
+          e.stopPropagation();
+          mobileDropdown.classList.toggle('open');
+        });
+
+        document.addEventListener('click', (e) => {
+          if (!mobileDropdown.contains(e.target) && !hamburger.contains(e.target)) {
+            mobileDropdown.classList.remove('open');
+          }
+        });
+      }
+
+      // -------------------------------------------------------------
+      // 2. WEB ANIMATIONS API (WAAPI) ENTRANCE SEQUENCE (~1.9s Total)
+      // -------------------------------------------------------------
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      if (!prefersReducedMotion) {
+        const easeOutQuint = 'cubic-bezier(0.16, 1, 0.3, 1)';
+        const easeOutQuad = 'cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+
+        // 1. Navbar Fade In (0ms -> 600ms)
+        const navbar = document.getElementById('navbar');
+        navbar.animate([
+          { opacity: 0, transform: 'translateY(-16px)' },
+          { opacity: 1, transform: 'translateY(0)' }
+        ], {
+          duration: 700,
+          easing: easeOutQuint,
+          fill: 'forwards'
+        });
+
+        // 2. Badge Pop & Expand (200ms -> 850ms)
+        const badge = document.getElementById('heroBadge');
+        badge.animate([
+          { opacity: 0, transform: 'scale(0.85) translateY(12px)' },
+          { opacity: 1, transform: 'scale(1) translateY(0)' }
+        ], {
+          delay: 200,
+          duration: 650,
+          easing: easeOutQuint,
+          fill: 'forwards'
+        });
+
+        // 3. Headline Upward Reveal (350ms -> 1100ms)
+        const headline = document.getElementById('heroHeadline');
+        headline.animate([
+          { opacity: 0, transform: 'translateY(55px)' },
+          { opacity: 1, transform: 'translateY(0)' }
+        ], {
+          delay: 350,
+          duration: 850,
+          easing: easeOutQuint,
+          fill: 'forwards'
+        });
+
+        // 4. Subheadline Rise (550ms -> 1350ms)
+        const subheadline = document.getElementById('heroSubheadline');
+        subheadline.animate([
+          { opacity: 0, transform: 'translateY(25px)' },
+          { opacity: 1, transform: 'translateY(0)' }
+        ], {
+          delay: 550,
+          duration: 750,
+          easing: easeOutQuint,
+          fill: 'forwards'
+        });
+
+        // 5. Primary Button Rise (700ms -> 1500ms)
+        const startBtn = document.getElementById('startVerificationBtn');
+        startBtn.animate([
+          { opacity: 0, transform: 'translateY(22px) scale(0.95)' },
+          { opacity: 1, transform: 'translateY(0) scale(1)' }
+        ], {
+          delay: 700,
+          duration: 650,
+          easing: easeOutQuint,
+          fill: 'forwards'
+        });
+
+        // 6. Secondary Button Rise (820ms -> 1600ms)
+        const exploreBtn = document.getElementById('explorePlatformBtn');
+        exploreBtn.animate([
+          { opacity: 0, transform: 'translateY(22px)' },
+          { opacity: 1, transform: 'translateY(0)' }
+        ], {
+          delay: 820,
+          duration: 650,
+          easing: easeOutQuint,
+          fill: 'forwards'
+        });
+
+        // 7. Central Forensic Scanner Reveal (450ms -> 1900ms)
+        const scanner = document.getElementById('scannerStage');
+        scanner.animate([
+          { opacity: 0, transform: 'translateX(-50%) translateY(80px) scale(0.92)' },
+          { opacity: 1, transform: 'translateX(-50%) translateY(0) scale(1)' }
+        ], {
+          delay: 450,
+          duration: 1250,
+          easing: easeOutQuint,
+          fill: 'forwards'
+        });
+      }
+
+      // -------------------------------------------------------------
+      // 3. CANVAS: FLOATING DATA PARTICLES & VERTICAL LIGHT STREAKS
+      // -------------------------------------------------------------
+      const canvas = document.getElementById('forensic-canvas');
+      if (canvas && !prefersReducedMotion) {
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let particles = [];
+        let lightStreaks = [];
+
+        function resize() {
+          const rect = canvas.parentElement.getBoundingClientRect();
+          width = canvas.width = rect.width;
+          height = canvas.height = rect.height;
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+
+        // Particle Constructor
+        class Particle {
+          constructor() {
+            this.reset();
+          }
+
+          reset() {
+            this.x = Math.random() * width;
+            this.y = height * (0.3 + Math.random() * 0.7);
+            this.size = Math.random() * 1.8 + 0.6;
+            this.speedY = -(Math.random() * 0.45 + 0.15);
+            this.speedX = (Math.random() - 0.5) * 0.25;
+            this.alpha = Math.random() * 0.6 + 0.2;
+            this.decay = Math.random() * 0.003 + 0.001;
+            // Palette: Amber, Orange, White, Cyan
+            const pTypes = ['#FF7A24', '#FFB347', '#FFFFFF', '#55DDF5'];
+            this.color = pTypes[Math.floor(Math.random() * pTypes.length)];
+          }
+
+          update() {
+            this.y += this.speedY;
+            this.x += this.speedX;
+            this.alpha -= this.decay;
+            if (this.alpha <= 0 || this.y < 0) {
+              this.reset();
+            }
+          }
+
+          draw() {
+            ctx.save();
+            ctx.globalAlpha = Math.max(0, this.alpha);
+            ctx.fillStyle = this.color;
+            ctx.shadowBlur = 6;
+            ctx.shadowColor = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+          }
+        }
+
+        // Thin Vertical Orange Light Streak Constructor
+        class LightStreak {
+          constructor() {
+            this.reset();
+          }
+
+          reset() {
+            this.x = width * (0.2 + Math.random() * 0.6);
+            this.y = height * 0.8 + Math.random() * (height * 0.2);
+            this.length = Math.random() * 45 + 25;
+            this.speedY = -(Math.random() * 1.2 + 0.6);
+            this.alpha = Math.random() * 0.4 + 0.1;
+            this.fade = Math.random() * 0.005 + 0.002;
+          }
+
+          update() {
+            this.y += this.speedY;
+            this.alpha -= this.fade;
+            if (this.alpha <= 0 || this.y < -this.length) {
+              this.reset();
+            }
+          }
+
+          draw() {
+            ctx.save();
+            ctx.globalAlpha = Math.max(0, this.alpha);
+            const grad = ctx.createLinearGradient(this.x, this.y, this.x, this.y + this.length);
+            grad.addColorStop(0, '#FFFFFF');
+            grad.addColorStop(0.3, '#FFB347');
+            grad.addColorStop(1, 'transparent');
+            ctx.strokeStyle = grad;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(this.x, this.y);
+            ctx.lineTo(this.x, this.y + this.length);
+            ctx.stroke();
+            ctx.restore();
+          }
+        }
+
+        // Initialize entities
+        for (let i = 0; i < 35; i++) particles.push(new Particle());
+        for (let i = 0; i < 6; i++) lightStreaks.push(new LightStreak());
+
+        // Animation Loop
+        function animate() {
+          ctx.clearRect(0, 0, width, height);
+
+          // Update & Draw light streaks
+          for (let s of lightStreaks) {
+            s.update();
+            s.draw();
+          }
+
+          // Update & Draw particles
+          for (let p of particles) {
+            p.update();
+            p.draw();
+          }
+
+          requestAnimationFrame(animate);
+        }
+
+        animate();
+      }
+
+      // -------------------------------------------------------------
+      // 4. BUTTON CLICK ACTIONS & ROUTING
+      // -------------------------------------------------------------
+      const startVerificationBtn = document.getElementById('startVerificationBtn');
+      if (startVerificationBtn) {
+        startVerificationBtn.addEventListener('click', (e) => {
+          // If frontend server running on :3000, navigate to verification hub
+          // Otherwise gracefully handle click
+          console.log('Navigating to BEYONDPROOF Verification Hub...');
+        });
+      }
+
+      const exploreBtn = document.getElementById('explorePlatformBtn');
+      if (exploreBtn) {
+        exploreBtn.addEventListener('click', (e) => {
+          console.log('Navigating to BEYONDPROOF Intelligence Dashboard...');
+        });
+      }
+    });
+  </script>
+</body>
+</html>
