@@ -61,16 +61,19 @@ export default function StatCard({
   return (
     <div
       className={cn(
-        'glass-card p-6 flex flex-col justify-between transition-all duration-300 group',
+        'relative bg-gradient-to-b from-gray-950 via-gray-900/60 to-gray-950 border border-gray-800/80 rounded-2xl p-5 flex flex-col justify-between transition-all duration-300 group hover:shadow-xl backdrop-blur-xl',
         styles.glow,
         className
       )}
     >
+      {/* Subtle corner tech tick */}
+      <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-gray-800 group-hover:bg-cyan-400 transition-colors" />
+
       <div className="flex items-center justify-between mb-4">
-        <span className="text-sm font-medium text-gray-400 tracking-wide">{label}</span>
+        <span className="text-xs font-mono font-medium text-gray-400 uppercase tracking-wider">{label}</span>
         <div
           className={cn(
-            'w-10 h-10 rounded-xl flex items-center justify-center border transition-transform group-hover:scale-105',
+            'w-10 h-10 rounded-xl flex items-center justify-center border transition-all duration-300 group-hover:scale-110 shadow-sm',
             styles.bg,
             styles.border,
             styles.text
@@ -81,14 +84,14 @@ export default function StatCard({
       </div>
 
       <div className="flex items-baseline justify-between gap-2">
-        <span className="text-3xl font-bold tracking-tight text-gray-50">{value}</span>
+        <span className="text-3xl font-extrabold tracking-tight text-white font-mono">{value}</span>
         {trend && (
           <div
             className={cn(
-              'flex items-center text-xs font-semibold px-2 py-0.5 rounded-full border',
+              'flex items-center text-[11px] font-mono font-semibold px-2 py-0.5 rounded-md border',
               trend.positive
-                ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
-                : 'text-red-400 bg-red-500/10 border-red-500/20'
+                ? 'text-emerald-400 bg-emerald-950/60 border-emerald-500/30'
+                : 'text-red-400 bg-red-950/60 border-red-500/30'
             )}
           >
             {trend.positive ? (

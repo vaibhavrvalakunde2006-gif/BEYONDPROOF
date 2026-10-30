@@ -33,6 +33,7 @@ import { CinematicScannerHero } from '@/components/CinematicScannerHero';
 import { CinematicBootSequence } from '@/components/3d/CinematicBootSequence';
 import { ThreeDCard } from '@/components/3d/ThreeDCard';
 import { GuidedDemoWalkthrough } from '@/components/3d/GuidedDemoWalkthrough';
+import { InteractiveForensicSandbox } from '@/components/InteractiveForensicSandbox';
 
 export default function LandingPage() {
   const router = useRouter();
@@ -381,6 +382,29 @@ export default function LandingPage() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* 3.5. INTERACTIVE LIVE FORENSIC SIMULATION TERMINAL */}
+      <section className="py-20 border-b border-gray-900 bg-black relative">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/40 border border-cyan-500/30 text-cyan-400 text-xs font-semibold mb-3">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Instant Evaluator Testing Sandbox</span>
+            </div>
+            <h2
+              className="text-3xl sm:text-4xl font-normal text-white uppercase tracking-wider mb-2"
+              style={{ fontFamily: "'Anta', sans-serif" }}
+            >
+              Stream Live Forensic Verdicts
+            </h2>
+            <p className="text-gray-400 text-sm max-w-xl mx-auto">
+              Test how BEYONDPROOF’s deterministic engines catch passport forgeries, audio voice clones, and PDF tampering in milliseconds.
+            </p>
+          </div>
+
+          <InteractiveForensicSandbox />
         </div>
       </section>
 

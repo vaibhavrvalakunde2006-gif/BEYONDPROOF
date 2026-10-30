@@ -20,27 +20,51 @@
 
 @layer components {
   .glass-card {
-    @apply bg-gray-900/50 backdrop-blur-xl border border-gray-800/50 rounded-xl shadow-xl shadow-black/20;
+    @apply bg-gray-950/70 backdrop-blur-xl border border-gray-800/80 rounded-2xl shadow-xl shadow-black/40;
   }
   
   .glass-card-hover {
-    @apply bg-gray-900/50 backdrop-blur-xl border border-gray-800/50 rounded-xl shadow-xl shadow-black/20 hover:border-violet-500/40 hover:bg-gray-900/70 transition-all duration-300;
+    @apply bg-gray-950/70 backdrop-blur-xl border border-gray-800/80 rounded-2xl shadow-xl shadow-black/40 hover:border-cyan-500/40 hover:shadow-cyan-950/30 transition-all duration-300;
+  }
+
+  .cyber-card {
+    @apply relative bg-gradient-to-b from-gray-950 via-gray-900/40 to-gray-950 border border-gray-800/80 hover:border-cyan-500/50 rounded-2xl p-6 backdrop-blur-xl transition-all duration-300 shadow-xl shadow-black/50;
   }
 
   .gradient-text {
-    @apply bg-gradient-to-r from-violet-400 via-purple-300 to-cyan-400 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-violet-400 via-cyan-300 to-amber-400 bg-clip-text text-transparent;
+  }
+
+  .gradient-text-orange {
+    @apply bg-gradient-to-r from-amber-200 via-orange-400 to-amber-500 bg-clip-text text-transparent;
   }
   
   .btn-primary {
-    @apply inline-flex items-center justify-center bg-violet-600 hover:bg-violet-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 hover:shadow-lg hover:shadow-violet-600/25 active:scale-95 disabled:opacity-50 disabled:pointer-events-none;
+    @apply inline-flex items-center justify-center bg-gradient-to-r from-orange-600 via-amber-500 to-orange-600 hover:from-orange-500 hover:to-amber-400 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 hover:shadow-lg hover:shadow-orange-500/25 active:scale-95 disabled:opacity-50 disabled:pointer-events-none;
   }
   
   .btn-secondary {
-    @apply inline-flex items-center justify-center bg-gray-800 hover:bg-gray-700 text-gray-200 px-6 py-3 rounded-lg font-medium transition-all duration-200 border border-gray-700 active:scale-95 disabled:opacity-50 disabled:pointer-events-none;
+    @apply inline-flex items-center justify-center bg-gray-900/80 hover:bg-gray-800/90 text-gray-200 px-6 py-3 rounded-xl font-medium transition-all duration-200 border border-gray-700/80 hover:border-gray-600 active:scale-95 disabled:opacity-50 disabled:pointer-events-none;
   }
 
   .cyber-badge {
     @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold tracking-wide border;
+  }
+
+  .hud-bracket {
+    @apply relative before:absolute before:top-0 before:left-0 before:w-2 before:h-2 before:border-t-2 before:border-l-2 before:border-cyan-400 after:absolute after:bottom-0 after:right-0 after:w-2 after:h-2 after:border-b-2 after:border-r-2 after:border-cyan-400;
+  }
+
+  .neon-glow-cyan {
+    box-shadow: 0 0 25px rgba(0, 229, 255, 0.35);
+  }
+
+  .neon-glow-amber {
+    box-shadow: 0 0 25px rgba(255, 122, 36, 0.35);
+  }
+
+  .neon-glow-violet {
+    box-shadow: 0 0 25px rgba(139, 92, 246, 0.35);
   }
 }
 

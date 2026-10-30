@@ -274,48 +274,51 @@ export default function DashboardPage() {
       </div>
 
       {/* Recent Verifications Table */}
-      <div className="glass-card p-6">
+      <div className="relative bg-gradient-to-b from-gray-950 via-gray-900/60 to-gray-950 border border-gray-800/90 rounded-2xl p-6 backdrop-blur-xl shadow-2xl">
         <div className="flex items-center justify-between mb-5">
-          <div>
-            <h2 className="text-base font-bold text-gray-100">Recent Verification Requests</h2>
-            <p className="text-xs text-gray-400">Latest files inspected by the multi-engine pipeline</p>
+          <div className="flex items-center gap-2.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse" />
+            <div>
+              <h2 className="text-base font-bold text-gray-100 font-mono">CRYPTOGRAPHIC AUDIT LEDGER</h2>
+              <p className="text-xs text-gray-400">Latest forensic analysis vectors and verified digital artifacts</p>
+            </div>
           </div>
           <Link
             href="/verification"
-            className="text-xs font-semibold text-violet-400 hover:text-violet-300 flex items-center gap-1"
+            className="text-xs font-mono font-semibold text-cyan-400 hover:text-cyan-300 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-900 border border-gray-800 hover:border-cyan-500/40 transition-all"
           >
-            <span>View All History</span>
+            <span>FULL LEDGER</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
         {recentVerifications.length > 0 ? (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto rounded-xl border border-gray-800/80">
             <table className="w-full text-left text-xs">
-              <thead className="bg-gray-900/80 text-gray-400 font-semibold border-b border-gray-800 uppercase tracking-wider">
+              <thead className="bg-gray-950/90 text-gray-400 font-mono font-semibold border-b border-gray-800 uppercase tracking-wider text-[11px]">
                 <tr>
                   <th className="py-3 px-4">Verification ID / Target File</th>
                   <th className="py-3 px-4">Engines</th>
                   <th className="py-3 px-4">Pipeline Status</th>
                   <th className="py-3 px-4">Risk Category</th>
-                  <th className="py-3 px-4">Date</th>
-                  <th className="py-3 px-4 text-right">Action</th>
+                  <th className="py-3 px-4">Timestamp</th>
+                  <th className="py-3 px-4 text-right">Audit Dossier</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-800/60 text-gray-300">
+              <tbody className="divide-y divide-gray-800/60 text-gray-300 font-mono">
                 {recentVerifications.map((item) => (
-                  <tr key={item.id} className="hover:bg-gray-900/40 transition-colors">
+                  <tr key={item.id} className="hover:bg-cyan-950/20 transition-colors">
                     <td className="py-3.5 px-4">
-                      <div className="font-medium text-gray-100 truncate max-w-xs">
+                      <div className="font-semibold text-gray-100 truncate max-w-xs">
                         {item.file?.filename || item.file_id || 'Uploaded Artifact'}
                       </div>
-                      <div className="text-[11px] font-mono text-gray-500 truncate max-w-[200px]">
-                        {item.id}
+                      <div className="text-[10px] text-gray-500 truncate max-w-[220px]">
+                        ID: {item.id}
                       </div>
                     </td>
                     <td className="py-3.5 px-4">
-                      <span className="px-2 py-0.5 rounded bg-gray-900 border border-gray-800 font-mono text-[11px] text-gray-400">
-                        {item.engines_requested?.length || item.engine_results?.length || 7} engines
+                      <span className="px-2 py-0.5 rounded bg-gray-900 border border-gray-800 text-[11px] text-cyan-400 font-semibold">
+                        {item.engines_requested?.length || item.engine_results?.length || 7} ENGINES
                       </span>
                     </td>
                     <td className="py-3.5 px-4">
@@ -323,22 +326,22 @@ export default function DashboardPage() {
                     </td>
                     <td className="py-3.5 px-4">
                       <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold border ${getRiskBgColor(
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${getRiskBgColor(
                           item.risk_assessment?.risk_category
                         )}`}
                       >
                         {getRiskLabel(item.risk_assessment?.risk_category)}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 text-gray-400 whitespace-nowrap">
+                    <td className="py-3.5 px-4 text-gray-400 whitespace-nowrap text-[11px]">
                       {formatDate(item.created_at)}
                     </td>
                     <td className="py-3.5 px-4 text-right">
                       <Link
                         href={`/verification/${item.id}`}
-                        className="inline-flex items-center gap-1 text-xs text-violet-400 hover:text-violet-300 font-medium"
+                        className="inline-flex items-center gap-1 text-xs text-cyan-400 hover:text-cyan-300 font-bold px-2.5 py-1 rounded bg-gray-900 border border-gray-800 hover:border-cyan-500/40 transition-colors"
                       >
-                        <span>Audit</span>
+                        <span>INSPECT</span>
                         <ArrowRight className="w-3.5 h-3.5" />
                       </Link>
                     </td>
