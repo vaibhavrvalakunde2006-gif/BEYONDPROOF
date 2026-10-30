@@ -40,13 +40,14 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS configuration
+# CORS configuration — permissive for local development
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.origins_list,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 # Static files for uploads and generated assets
