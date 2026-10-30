@@ -90,3 +90,19 @@ export const adminAPI = {
   getActivity: () => api.get('/api/admin/activity'),
   getEngines: () => api.get('/api/admin/engines'),
 };
+
+// Investigation & Analysis API (matches suggested starter integration)
+export const investigationAPI = {
+  list: (params?: { skip?: number; limit?: number }) => api.get('/api/investigations', { params }),
+  create: (data: { file_id: string; engines?: string[] }) => api.post('/api/investigations', data),
+  get: (id: string) => api.get(`/api/investigations/${id}`),
+};
+
+export const analysisAPI = {
+  start: (id: string) => api.post(`/api/analysis/${id}/start`),
+  getStatus: (id: string) => api.get(`/api/analysis/${id}/status`),
+  getResults: (id: string) => api.get(`/api/analysis/${id}/results`),
+  getTrustGraph: (id: string) => api.get(`/api/trust-graph/${id}`),
+  generateReport: (id: string) =>
+    api.get(`/api/reports/${id}/generate`, { responseType: 'blob' }),
+};

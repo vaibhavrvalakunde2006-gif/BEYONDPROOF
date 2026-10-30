@@ -22,6 +22,7 @@ from engines.source.router import router as source_router
 from engines.trust_graph.router import router as graph_router
 from engines.risk.router import router as risk_router
 from verification.router import router as verification_router
+from investigations.router import router as investigations_router
 from admin.router import router as admin_router
 from websocket.manager import router as ws_router
 
@@ -72,6 +73,7 @@ app.include_router(source_router)
 app.include_router(graph_router)
 app.include_router(risk_router)
 app.include_router(verification_router)
+app.include_router(investigations_router)
 app.include_router(admin_router)
 app.include_router(ws_router)
 

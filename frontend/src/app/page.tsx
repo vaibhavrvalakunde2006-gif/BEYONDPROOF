@@ -285,6 +285,16 @@ export default function LandingPage() {
             >
               2-Min Pitch
             </a>
+            <Link
+              href="/app/dashboard"
+              onClick={() => soundManager.playBlip()}
+              className="text-cyan-400 hover:text-cyan-300 font-medium transition-colors flex items-center gap-1"
+            >
+              <span>Workspace</span>
+              <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-cyan-950 border border-cyan-500/40 text-cyan-300">
+                /app
+              </span>
+            </Link>
             <button
               onClick={() => {
                 soundManager.playLaserScan();
