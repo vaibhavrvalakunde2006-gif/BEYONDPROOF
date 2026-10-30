@@ -192,7 +192,7 @@ export default function Home() {
       </header>
 
       {/* Hero: 3D Forensic Command Holodeck Section */}
-      <div id="holodeck" className="pt-16">
+      <div id="holodeck" className="relative w-full h-screen">
         <ForensicHolodeckHero />
       </div>
 

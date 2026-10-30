@@ -476,8 +476,8 @@ export default function ForensicHolodeckHero({
     // Resize
     const handleResize = () => {
       if (!container) return;
-      width = container.clientWidth;
-      height = container.clientHeight || 700;
+      width = container.clientWidth || window.innerWidth;
+      height = container.clientHeight || window.innerHeight;
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
       renderer.setSize(width, height);
@@ -573,30 +573,63 @@ export default function ForensicHolodeckHero({
   }, []);
 
   return (
-    <section className="relative w-full min-h-[92vh] flex flex-col justify-between items-center bg-black overflow-hidden select-none border-b border-cyan-500/30">
-      {/* Dynamic Scanline & Grid Background */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,rgba(0,229,255,0.14)_0%,rgba(0,0,0,0.95)_75%,#000000_100%)] pointer-events-none" />
+    <section className="relative w-full h-screen min-h-[780px] flex flex-col justify-between items-center bg-[#020509] overflow-hidden select-none border-b border-cyan-500/30">
+      {/* Dynamic Cyber Grid & Scanline Background */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_40%,rgba(0,229,255,0.12)_0%,rgba(3,6,10,0.95)_75%,#020408_100%)] pointer-events-none" />
+
+      {/* Real Three.js Canvas Container - Full Viewport Stage */}
+      <div
+        ref={mountRef}
+        className="absolute inset-0 w-full h-full z-0 cursor-grab active:cursor-grabbing"
+      />
 
       {/* Top Floating Tactical HUD Bar */}
-      <div className="w-full max-w-7xl mx-auto px-6 pt-6 z-30 flex items-center justify-between text-xs font-mono">
-        <div className="flex items-center gap-3">
-          <span className="flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/60 border border-cyan-500/40 text-cyan-300">
+      <div className="relative w-full max-w-7xl mx-auto px-6 pt-6 z-20 flex flex-col md:flex-row items-center justify-between gap-4 pointer-events-none">
+        <div className="flex items-center gap-3 pointer-events-auto">
+          <span className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-950/70 border border-cyan-400/40 text-cyan-300 text-xs font-mono shadow-[0_0_15px_rgba(0,229,255,0.2)]">
             <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping inline-block shadow-sm shadow-cyan-400" />
-            <span className="font-bold">3D FORENSIC COMMAND HOLODECK</span>
+            <span className="font-bold">3D COMMAND HOLODECK</span>
           </span>
-          <span className="hidden md:inline text-gray-500">
-            COORDS: X:{mouseCoords.x} Y:{mouseCoords.y} Z:0.0
+          <span className="hidden sm:inline text-gray-500 text-xs font-mono">
+            COORDS: X:{mouseCoords.x} Y:{mouseCoords.y} // 60 FPS
           </span>
         </div>
 
-        <div className="flex items-center gap-3">
+        {/* Center: Camera Presets Switcher */}
+        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-black/80 border border-white/10 backdrop-blur-md text-[11px] font-mono text-gray-400 pointer-events-auto">
+          <span className="px-2 text-gray-500 flex items-center gap-1">
+            <Compass className="w-3 h-3 text-cyan-400" />
+            <span>CAM:</span>
+          </span>
+          {[
+            { id: 'orbit', label: '360° ORBIT' },
+            { id: 'top', label: 'TOP NADIR' },
+            { id: 'macro', label: 'MACRO' },
+            { id: 'cinematic', label: 'CINEMATIC' },
+          ].map((cam) => (
+            <button
+              key={cam.id}
+              onClick={() => handleCameraChange(cam.id as CameraPreset)}
+              className={`px-2.5 py-1 rounded-lg transition-all ${
+                cameraPreset === cam.id
+                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/60 font-bold'
+                  : 'hover:text-white'
+              }`}
+            >
+              {cam.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Right: Audio Synthesizer & Judge Tour Controls */}
+        <div className="flex items-center gap-3 pointer-events-auto">
           <button
             onClick={handleToggleMute}
-            className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-900 border border-gray-700 text-gray-300 hover:text-cyan-300 hover:border-cyan-500 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/70 border border-gray-700 text-gray-300 hover:text-cyan-300 hover:border-cyan-500 transition-colors text-xs font-mono"
             title="Toggle Sci-Fi Audio Synthesizer"
           >
             {isMuted ? <VolumeX className="w-3.5 h-3.5 text-red-400" /> : <Volume2 className="w-3.5 h-3.5 text-cyan-400" />}
-            <span className="text-[11px]">{isMuted ? 'AUDIO MUTED' : 'AUDIO SYNTH: ON'}</span>
+            <span>{isMuted ? 'AUDIO MUTED' : 'AUDIO SYNTH: ON'}</span>
           </button>
 
           <button
@@ -604,7 +637,7 @@ export default function ForensicHolodeckHero({
               setIsTourActive(!isTourActive);
               soundManager.playModeSwitch();
             }}
-            className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold transition-all shadow-lg ${
+            className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-mono font-bold transition-all shadow-lg ${
               isTourActive
                 ? 'bg-orange-600 text-white border border-orange-400 shadow-orange-600/40 animate-pulse'
                 : 'bg-gradient-to-r from-orange-600 to-amber-500 text-white hover:brightness-110 shadow-orange-600/20'
@@ -616,9 +649,9 @@ export default function ForensicHolodeckHero({
         </div>
       </div>
 
-      {/* Main Headline & Tactical Slogan */}
-      <div className="relative z-20 max-w-4xl mx-auto px-6 pt-6 text-center flex flex-col items-center">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-orange-950/40 border border-orange-500/40 text-xs text-orange-200 mb-4 backdrop-blur-md shadow-[0_0_20px_rgba(255,122,36,0.3)]">
+      {/* Floating Center Title & 5-Mode 3D Chamber Switcher */}
+      <div className="relative z-20 max-w-4xl mx-auto px-6 text-center flex flex-col items-center pointer-events-none mt-2">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-orange-950/40 border border-orange-500/40 text-xs text-orange-200 mb-3 backdrop-blur-md shadow-[0_0_20px_rgba(255,122,36,0.3)]">
           <span className="bg-white text-black text-[10px] font-extrabold px-1.5 py-0.5 rounded tracking-wider uppercase">
             HACKATHON BUILD
           </span>
@@ -627,7 +660,7 @@ export default function ForensicHolodeckHero({
         </div>
 
         <h1
-          className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-normal tracking-wide text-white mb-4 uppercase"
+          className="text-4xl sm:text-5xl md:text-6xl font-normal tracking-wide text-white mb-2 uppercase"
           style={{ fontFamily: "'Anta', sans-serif" }}
         >
           <span className="block opacity-95">BEYOND TRUST.</span>
@@ -636,12 +669,12 @@ export default function ForensicHolodeckHero({
           </span>
         </h1>
 
-        <p className="text-gray-400 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed mb-6 font-mono">
+        <p className="text-gray-400 text-xs sm:text-sm max-w-xl mx-auto leading-relaxed mb-4 font-mono">
           Continuous mathematical verification against deepfakes, synthetic identities, and document tampering.
         </p>
 
         {/* 5-Mode 3D Holodeck Switcher Tabs */}
-        <div className="flex flex-wrap items-center justify-center gap-2 mb-4 font-mono text-xs">
+        <div className="flex flex-wrap items-center justify-center gap-2 mb-2 font-mono text-xs pointer-events-auto">
           {[
             { id: 'core', label: '01. INTEGRITY CORE', icon: Activity },
             { id: 'biometric', label: '02. BIOMETRIC MESH', icon: Scan },
@@ -654,8 +687,8 @@ export default function ForensicHolodeckHero({
               onClick={() => handleModeChange(tab.id as HolodeckMode)}
               className={`px-3.5 py-2 rounded-xl border flex items-center gap-1.5 transition-all ${
                 activeMode === tab.id
-                  ? 'bg-cyan-500/20 text-cyan-300 border-cyan-400/80 shadow-[0_0_15px_rgba(0,229,255,0.3)] font-bold scale-105'
-                  : 'bg-gray-950/70 text-gray-400 border-gray-800 hover:border-gray-700 hover:text-white'
+                  ? 'bg-cyan-500/25 text-cyan-300 border-cyan-400 shadow-[0_0_20px_rgba(0,229,255,0.4)] font-bold scale-105'
+                  : 'bg-black/60 text-gray-400 border-gray-800 hover:border-gray-700 hover:text-white backdrop-blur-md'
               }`}
             >
               <tab.icon className="w-3.5 h-3.5" />
@@ -665,156 +698,120 @@ export default function ForensicHolodeckHero({
         </div>
       </div>
 
-      {/* 3D Holodeck Canvas Viewport with Corner Crosshairs */}
-      <div
-        className={
-          isFullscreen
-            ? 'fixed inset-0 z-50 bg-[#03060a]/98 backdrop-blur-3xl flex flex-col justify-between p-6 select-none'
-            : 'relative w-full max-w-7xl h-[660px] lg:h-[740px] mx-auto flex items-center justify-center select-none overflow-hidden my-4 rounded-3xl border border-cyan-500/30 bg-gradient-to-b from-[#0a121e]/90 via-[#060a12]/95 to-black shadow-[0_0_80px_rgba(0,229,255,0.18)]'
-        }
-      >
-        {/* Floating Top Viewport Controls: Camera Presets & Maximize Button */}
-        <div className="absolute top-4 left-6 right-6 z-30 flex items-center justify-between pointer-events-auto">
-          {/* Left: Reticle or Fullscreen Badge */}
-          <div className="flex items-center gap-3">
-            <span className="text-cyan-400 font-mono text-xs flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
-              <span>{isFullscreen ? '[CYBERDECK FULLSCREEN ENGAGED]' : '[+] RETICLE: 3D_FORENSIC_TRACKER'}</span>
+      {/* Floating Tactical Wings (Reticle telemetry left & Adversarial attack right) */}
+      <div className="absolute top-1/2 -translate-y-1/2 left-6 z-20 hidden xl:flex flex-col gap-3 font-mono text-xs pointer-events-none">
+        <div className="p-4 rounded-2xl bg-black/70 border border-cyan-500/30 backdrop-blur-md shadow-xl text-cyan-400 w-64 pointer-events-auto">
+          <div className="flex items-center justify-between pb-2 border-b border-white/[0.08] mb-2 text-[11px]">
+            <span className="font-bold flex items-center gap-1.5">
+              <Shield className="w-3.5 h-3.5" />
+              <span>LIVE TELEMETRY</span>
             </span>
+            <span className="text-emerald-400">ONLINE</span>
           </div>
+          <div className="space-y-1.5 text-[11px] text-gray-400">
+            <div className="flex justify-between">
+              <span>FastAPI Port:</span>
+              <span className="text-white">8000 STREAM</span>
+            </div>
+            <div className="flex justify-between">
+              <span>WebGL Pipeline:</span>
+              <span className="text-cyan-300">Three.js r182</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Verification SLA:</span>
+              <span className="text-emerald-400">&lt; 1.4s</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Cryptographic Proof:</span>
+              <span className="text-amber-400">SHA-256 Ledger</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
-          {/* Center: Camera Presets Switcher */}
-          <div className="hidden sm:flex items-center gap-1.5 p-1 rounded-xl bg-black/80 border border-white/10 backdrop-blur-md text-[11px] font-mono text-gray-400">
-            <span className="px-2 text-gray-500 flex items-center gap-1">
-              <Compass className="w-3 h-3 text-cyan-400" />
-              <span>CAM:</span>
+      <div className="absolute top-1/2 -translate-y-1/2 right-6 z-20 hidden xl:flex flex-col gap-3 font-mono text-xs pointer-events-none">
+        <div className="p-4 rounded-2xl bg-black/70 border border-orange-500/30 backdrop-blur-md shadow-xl text-orange-400 w-64 pointer-events-auto">
+          <div className="flex items-center justify-between pb-2 border-b border-white/[0.08] mb-2 text-[11px]">
+            <span className="font-bold flex items-center gap-1.5">
+              <AlertTriangle className="w-3.5 h-3.5" />
+              <span>JUDGE ATTACK SUITE</span>
             </span>
-            {[
-              { id: 'orbit', label: '360° ORBIT' },
-              { id: 'top', label: 'TOP NADIR' },
-              { id: 'macro', label: 'MACRO' },
-              { id: 'cinematic', label: 'CINEMATIC' },
-            ].map((cam) => (
+            <span className="text-orange-400 animate-pulse">1-CLICK</span>
+          </div>
+          <div className="space-y-2">
+            {sampleAttacks.map((attack) => (
               <button
-                key={cam.id}
-                onClick={() => handleCameraChange(cam.id as CameraPreset)}
-                className={`px-2.5 py-1 rounded-lg transition-all ${
-                  cameraPreset === cam.id
-                    ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/60 font-bold'
-                    : 'hover:text-white'
-                }`}
+                key={attack.id}
+                onClick={() => handleTriggerSample(attack)}
+                className="w-full text-left p-2 rounded-lg bg-black/60 hover:bg-orange-950/40 border border-white/[0.08] hover:border-orange-500/50 text-gray-300 hover:text-orange-300 text-[11px] transition-all flex items-center justify-between group"
               >
-                {cam.label}
+                <span className="truncate">{attack.name}</span>
+                <span className="text-orange-400 opacity-0 group-hover:opacity-100 transition-opacity">&rarr;</span>
               </button>
             ))}
           </div>
-
-          {/* Right: Maximize Cyberdeck Toggle */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={toggleFullscreen}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-cyan-950/70 border border-cyan-400/50 text-cyan-300 hover:bg-cyan-500/20 hover:border-cyan-400 text-xs font-mono font-bold transition-all shadow-[0_0_15px_rgba(0,229,255,0.2)]"
-              title="Expand to Fullscreen Cyberdeck Viewport"
-            >
-              {isFullscreen ? (
-                <>
-                  <Minimize2 className="w-3.5 h-3.5" />
-                  <span>RESTORE (ESC)</span>
-                </>
-              ) : (
-                <>
-                  <Maximize2 className="w-3.5 h-3.5" />
-                  <span>MAXIMIZE 3D CYBERDECK</span>
-                </>
-              )}
-            </button>
-          </div>
         </div>
-
-        {/* Bottom Tactical Info Overlay */}
-        <div className="absolute bottom-4 left-6 pointer-events-none text-gray-400 font-mono text-[11px] flex items-center gap-3">
-          <span>[+] DRAG MOUSE TO ROTATE 360° // SCROLL TO ZOOM</span>
-        </div>
-        <div className="absolute bottom-4 right-6 pointer-events-none text-cyan-400 font-mono text-[11px] text-right">
-          LATENCY: 12ms // 60 FPS // SHA-256 VAULT [+]
-        </div>
-
-        {/* Real Three.js Canvas Container */}
-        <div
-          ref={mountRef}
-          className="w-full h-full relative cursor-grab active:cursor-grabbing"
-        />
-
-        {/* Floating Holographic Telemetry Card if Autopilot is Active */}
-        {isTourActive && (
-          <div className="absolute bottom-10 left-1/2 -translate-x-1/2 w-full max-w-xl p-4 rounded-2xl bg-gray-950/90 border border-orange-500/60 backdrop-blur-xl shadow-2xl shadow-orange-950/80 animate-fade-in z-30">
-            <div className="text-[11px] font-mono text-orange-400 font-bold uppercase mb-1">
-              {tourScripts[tourStep].title}
-            </div>
-            <p className="text-xs text-gray-200 italic leading-relaxed">
-              &ldquo;{tourScripts[tourStep].script}&rdquo;
-            </p>
-          </div>
-        )}
-
-        {/* Floating Real-Time Attack Verdict Card if Active */}
-        {inspectionVerdict && (
-          <div className="absolute top-16 right-8 w-80 p-4 rounded-2xl bg-gray-950/95 border border-red-500/60 backdrop-blur-xl shadow-2xl shadow-red-950/80 animate-fade-in z-30 font-mono text-xs">
-            <div className="flex items-center justify-between border-b border-gray-800 pb-2 mb-2">
-              <span className="text-red-400 font-bold flex items-center gap-1.5">
-                <AlertTriangle className="w-4 h-4 text-red-400" />
-                <span>{inspectionVerdict.verdict}</span>
-              </span>
-              <button
-                onClick={() => setInspectionVerdict(null)}
-                className="text-gray-500 hover:text-white"
-              >
-                &times;
-              </button>
-            </div>
-            <div className="text-gray-300 font-bold text-sm mb-1">{inspectionVerdict.filename}</div>
-            <div className="text-[11px] text-emerald-400 mb-2">{inspectionVerdict.confidence}</div>
-            <p className="text-[11px] text-gray-400 leading-relaxed mb-3">
-              {inspectionVerdict.details}
-            </p>
-            <div className="pt-2 border-t border-gray-800/80 flex items-center justify-between">
-              <span className="text-[10px] text-gray-500 truncate max-w-[140px]">
-                {inspectionVerdict.sha256}
-              </span>
-              <Link
-                href="/app/history"
-                className="text-xs text-cyan-400 hover:text-cyan-300 font-bold flex items-center gap-1"
-              >
-                <span>DOSSIER</span>
-                <ArrowRight className="w-3 h-3" />
-              </Link>
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* Bottom Sample Ingestion Bar & CTAs */}
-      <div className="w-full max-w-6xl mx-auto px-6 pb-8 z-20 flex flex-col items-center gap-4">
-        {/* Sample Attack Vector Quick Buttons */}
-        <div className="flex flex-wrap items-center justify-center gap-2 font-mono text-xs">
-          <span className="text-gray-500 text-[11px] mr-1 hidden sm:inline">ADVERSARIAL ATTACK TEST SAMPLES:</span>
-          {sampleAttacks.map((attack) => (
+      {/* Floating Holographic Telemetry Card if Autopilot is Active */}
+      {isTourActive && (
+        <div className="absolute bottom-28 left-1/2 -translate-x-1/2 w-full max-w-xl p-4 rounded-2xl bg-gray-950/95 border border-orange-500/60 backdrop-blur-xl shadow-2xl shadow-orange-950/80 animate-fade-in z-30 font-mono">
+          <div className="text-[11px] text-orange-400 font-bold uppercase mb-1">
+            {tourScripts[tourStep].title}
+          </div>
+          <p className="text-xs text-gray-200 italic leading-relaxed">
+            &ldquo;{tourScripts[tourStep].script}&rdquo;
+          </p>
+        </div>
+      )}
+
+      {/* Floating Real-Time Attack Verdict Card if Active */}
+      {inspectionVerdict && (
+        <div className="absolute top-24 right-8 w-80 p-4 rounded-2xl bg-gray-950/95 border border-red-500/60 backdrop-blur-xl shadow-2xl shadow-red-950/80 animate-fade-in z-30 font-mono text-xs">
+          <div className="flex items-center justify-between border-b border-gray-800 pb-2 mb-2">
+            <span className="text-red-400 font-bold flex items-center gap-1.5">
+              <AlertTriangle className="w-4 h-4 text-red-400" />
+              <span>{inspectionVerdict.verdict}</span>
+            </span>
             <button
-              key={attack.id}
-              onClick={() => handleTriggerSample(attack)}
-              className="px-3 py-1.5 rounded-lg bg-gray-900/80 hover:bg-red-950/40 border border-gray-800 hover:border-red-500/50 text-gray-300 hover:text-red-300 transition-all flex items-center gap-1.5"
+              onClick={() => setInspectionVerdict(null)}
+              className="text-gray-500 hover:text-white"
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
-              <span>{attack.name}</span>
+              &times;
             </button>
-          ))}
+          </div>
+          <div className="text-gray-300 font-bold text-sm mb-1">{inspectionVerdict.filename}</div>
+          <div className="text-[11px] text-emerald-400 mb-2">{inspectionVerdict.confidence}</div>
+          <p className="text-[11px] text-gray-400 leading-relaxed mb-3">
+            {inspectionVerdict.details}
+          </p>
+          <div className="pt-2 border-t border-gray-800/80 flex items-center justify-between">
+            <span className="text-[10px] text-gray-500 truncate max-w-[140px]">
+              {inspectionVerdict.sha256}
+            </span>
+            <Link
+              href="/app/history"
+              className="text-xs text-cyan-400 hover:text-cyan-300 font-bold flex items-center gap-1"
+            >
+              <span>DOSSIER</span>
+              <ArrowRight className="w-3 h-3" />
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* Bottom Floating Action Bar & Drag Instructions */}
+      <div className="relative w-full max-w-6xl mx-auto px-6 pb-6 z-20 flex flex-col items-center gap-3 pointer-events-none">
+        <div className="text-[11px] font-mono text-gray-400 flex items-center gap-3">
+          <span>[+] CLICK &amp; DRAG MOUSE TO ORBIT 360° // SCROLL TO ZOOM</span>
         </div>
 
         {/* Global CTAs */}
-        <div className="flex flex-wrap items-center justify-center gap-4 w-full">
+        <div className="flex flex-wrap items-center justify-center gap-3 w-full pointer-events-auto">
           <Link
             href="/app/dashboard"
-            className="btn-primary px-8 py-3.5 text-sm font-semibold flex items-center gap-2 shadow-lg shadow-cyan-600/30 bg-gradient-to-r from-cyan-500 to-teal-400 text-black rounded-xl font-bold"
+            onClick={() => soundManager.playModeSwitch()}
+            className="px-7 py-3 text-xs font-mono font-bold flex items-center gap-2 shadow-lg shadow-cyan-600/30 bg-gradient-to-r from-cyan-500 to-teal-400 text-black rounded-xl hover:brightness-110 transition-all transform hover:-translate-y-0.5"
           >
             <span>LAUNCH FULL PLATFORM</span>
             <ArrowRight className="w-4 h-4" />
@@ -824,7 +821,7 @@ export default function ForensicHolodeckHero({
             <button
               onClick={onQuickLogin}
               disabled={isLoggingIn}
-              className="px-6 py-3.5 rounded-xl bg-emerald-950/60 hover:bg-emerald-900/60 border border-emerald-500/40 text-emerald-300 text-xs font-mono font-bold flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(16,185,129,0.2)] active:scale-95"
+              className="px-6 py-3 rounded-xl bg-emerald-950/70 hover:bg-emerald-900/70 border border-emerald-500/50 text-emerald-300 text-xs font-mono font-bold flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(16,185,129,0.25)] active:scale-95"
             >
               <Lock className="w-4 h-4 text-emerald-400" />
               <span>{isLoggingIn ? 'AUTHENTICATING...' : '1-CLICK LEAD INVESTIGATOR LOGIN'}</span>
@@ -834,11 +831,22 @@ export default function ForensicHolodeckHero({
           <a
             href="/BEYONDPROOF_2_Minute_Judge_Pitch.pdf"
             download
-            className="px-6 py-3.5 rounded-xl bg-gray-900/80 hover:bg-gray-800 border border-gray-700 text-gray-300 text-xs font-mono font-semibold flex items-center gap-2 transition-colors"
+            onClick={() => soundManager.playBlip()}
+            className="px-6 py-3 rounded-xl bg-black/60 hover:bg-gray-900 border border-gray-700 text-gray-300 text-xs font-mono font-semibold flex items-center gap-2 transition-colors backdrop-blur-md"
           >
             <span>DOWNLOAD PITCH PDF</span>
           </a>
         </div>
+
+        {/* Scroll Cue down to 7-Engine Architecture */}
+        <a
+          href="#engines"
+          onClick={() => soundManager.playBlip()}
+          className="mt-1 text-[11px] font-mono text-cyan-400/80 hover:text-cyan-300 transition-colors pointer-events-auto flex items-center gap-1.5 animate-bounce"
+        >
+          <span>EXPLORE 7-ENGINE ARCHITECTURE &amp; EVIDENCE PIPELINE</span>
+          <span>&darr;</span>
+        </a>
       </div>
     </section>
   );

@@ -21,6 +21,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { soundManager } from "@/lib/soundFx";
+import ThreeDCard from "@/components/3d/ThreeDCard";
 
 // Dynamically load the 3D Integrity Core for the dashboard
 const ThreeDIntegrityCore = dynamic(
@@ -128,10 +129,10 @@ export default function Dashboard() {
             </div>
             <div>
               <h3 className="text-sm font-bold text-white font-mono tracking-wide">
-                3D FORENSIC INTEGRITY CORE & ENGINE SATELLITES
+                3D FORENSIC INTEGRITY CORE &amp; ENGINE SATELLITES
               </h3>
               <p className="text-[11px] text-gray-400 font-mono">
-                Drag to rotate 3D sphere ? Click satellite nodes to open specialized engines
+                Drag to rotate 3D sphere — Click satellite nodes to open specialized engines
               </p>
             </div>
           </div>
@@ -150,9 +151,57 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* 4 Metric Cards */}
+      {/* 1-Click Judge Adversarial Attack Simulator Bar */}
+      <div className="p-5 rounded-2xl bg-[#0a111b] border border-orange-500/30 flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-xs">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-orange-500/20 border border-orange-400/40 flex items-center justify-center text-orange-400">
+            <AlertTriangle className="w-4 h-4" />
+          </div>
+          <div>
+            <span className="text-white font-bold block">ADVERSARIAL ATTACK TEST BENCH</span>
+            <span className="text-gray-400 text-[10px]">Inject simulated multi-spectral fraud vectors to stress-test forensic engines</span>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => {
+              soundManager.playLaserScan();
+              setTimeout(() => soundManager.playAlertBuzz(), 800);
+            }}
+            className="px-3 py-1.5 rounded-lg bg-red-950/60 hover:bg-red-900/60 border border-red-500/40 text-red-300 font-bold transition-all flex items-center gap-1.5"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
+            <span>PASSPORT MRZ FORGERY</span>
+          </button>
+
+          <button
+            onClick={() => {
+              soundManager.playLaserScan();
+              setTimeout(() => soundManager.playAlertBuzz(), 800);
+            }}
+            className="px-3 py-1.5 rounded-lg bg-purple-950/60 hover:bg-purple-900/60 border border-purple-500/40 text-purple-300 font-bold transition-all flex items-center gap-1.5"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
+            <span>SYNTHETIC VOICE DEEPFAKE</span>
+          </button>
+
+          <button
+            onClick={() => {
+              soundManager.playLaserScan();
+              setTimeout(() => soundManager.playAlertBuzz(), 800);
+            }}
+            className="px-3 py-1.5 rounded-lg bg-amber-950/60 hover:bg-amber-900/60 border border-amber-500/40 text-amber-300 font-bold transition-all flex items-center gap-1.5"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+            <span>SPLICED PDF CONTRACT</span>
+          </button>
+        </div>
+      </div>
+
+      {/* 4 Metric Cards with 3D Perspective Tilt */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 font-mono">
-        <div className="p-5 rounded-xl bg-[#090e17] border border-white/[0.08] hover:border-cyan-500/30 transition-colors">
+        <ThreeDCard glowColor="#00e5ff" className="p-5 bg-[#090e17]">
           <span className="text-[11px] text-gray-500 uppercase block mb-1">
             TOTAL INVESTIGATIONS
           </span>
@@ -160,9 +209,9 @@ export default function Dashboard() {
           <span className="text-[11px] text-cyan-400 flex items-center gap-1.5">
             <Activity className="w-3 h-3" /> Active Case Files
           </span>
-        </div>
+        </ThreeDCard>
 
-        <div className="p-5 rounded-xl bg-[#090e17] border border-white/[0.08] hover:border-cyan-500/30 transition-colors">
+        <ThreeDCard glowColor="#10b981" className="p-5 bg-[#090e17]">
           <span className="text-[11px] text-gray-500 uppercase block mb-1">
             FILES ANALYSED
           </span>
@@ -170,9 +219,9 @@ export default function Dashboard() {
           <span className="text-[11px] text-emerald-400 flex items-center gap-1.5">
             <FileSearch className="w-3 h-3" /> Across 7 Forensic Engines
           </span>
-        </div>
+        </ThreeDCard>
 
-        <div className="p-5 rounded-xl bg-[#090e17] border border-white/[0.08] hover:border-cyan-500/30 transition-colors">
+        <ThreeDCard glowColor="#ffb547" className="p-5 bg-[#090e17]">
           <span className="text-[11px] text-gray-500 uppercase block mb-1">
             REPORTS GENERATED
           </span>
@@ -180,9 +229,9 @@ export default function Dashboard() {
           <span className="text-[11px] text-amber-400 flex items-center gap-1.5">
             <ShieldCheck className="w-3 h-3" /> SHA-256 Verified PDFs
           </span>
-        </div>
+        </ThreeDCard>
 
-        <div className="p-5 rounded-xl bg-[#090e17] border border-white/[0.08] hover:border-cyan-500/30 transition-colors">
+        <ThreeDCard glowColor="#00e5ff" className="p-5 bg-[#090e17]">
           <span className="text-[11px] text-gray-500 uppercase block mb-1">
             ACTIVE 3D ENGINES
           </span>
@@ -191,7 +240,7 @@ export default function Dashboard() {
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             WebGL 2.0 Operational
           </span>
-        </div>
+        </ThreeDCard>
       </div>
 
       {/* Grid: Recent Investigations & Quick Engine Access */}
