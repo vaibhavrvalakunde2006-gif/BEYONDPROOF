@@ -85,6 +85,18 @@ const ThreeDRiskPolyhedron = dynamic(
   }
 );
 
+const LaunderedFakesShield = dynamic(
+  () => import("@/components/3d/LaunderedFakesShield"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-48 flex items-center justify-center bg-black/40 text-amber-400 font-mono text-xs">
+        LOADING LAUNDERED FAKES & LYING METADATA SHIELD...
+      </div>
+    ),
+  }
+);
+
 const engineConfig: Record<string, any> = {
   identity: {
     name: "Identity Guardian",
@@ -120,18 +132,19 @@ const engineConfig: Record<string, any> = {
   },
   media: {
     name: "Media Truth Engine",
-    tag: "SPECTRAL ERROR LEVEL ANALYSIS",
-    desc: "Dissect images, video, and audio recordings for generative AI artifacts, compression mismatches, and synthetic waveforms.",
+    tag: "SPECTRAL ELA & LAUNDERED FAKE SHIELD",
+    desc: "Dissect images, video, and audio recordings for generative AI artifacts, screen re-photography Moiré patterns, and cross-modal EXIF metadata forgery.",
     color: "#8b5cf6",
     icon: ScanLine,
     capabilities: [
+      "2D FFT Moiré screen re-photography periodic lattice detector",
+      "Cross-modal EXIF vs physical reality validator (aperture, ISO, sensor)",
+      "Standard IJG vs camera hardware ISP quantization matrix parser",
+      "Authenticity engine enforcing 'Absence of tampering != Verified Genuine'",
       "3D topological Error Level Analysis (ELA) heightmap",
-      "Audio spectrogram pitch boundary diffusion detector",
-      "Video temporal frame-to-frame optical flow consistency",
-      "Diffusion model latent noise distribution scoring",
     ],
-    sampleArtifact: "CFO_WIRE_AUTHORIZATION.WAV",
-    verdict: "DEEPFAKE SYNTHETIC (16.4kHz Boundary Anomaly)",
+    sampleArtifact: "CANON_EOS5D_AI_LAUNDERED.JPG",
+    verdict: "METADATA FORGERY DETECTED & LAUNDERED SUSPECT",
     component: ThreeDMediaTerrain,
   },
   source: {
@@ -352,6 +365,11 @@ export default function EnginePage() {
             </Link>
           </div>
         </div>
+      </div>
+
+      {/* Laundered Fakes & Lying Metadata Shield Widget */}
+      <div className="mt-8">
+        <LaunderedFakesShield />
       </div>
     </div>
   );

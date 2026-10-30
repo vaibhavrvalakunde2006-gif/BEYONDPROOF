@@ -20,11 +20,12 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { soundManager } from "@/lib/soundFx";
+import LaunderedFakesShield from "@/components/3d/LaunderedFakesShield";
 
 const engines = [
   { id: "identity", name: "Identity Guardian", desc: "Biometric face wireframe, MRZ checksum, synthetic spoofing" },
   { id: "document", name: "Document Verifier", desc: "PDF layer structural dissection, font mismatch, xref streams" },
-  { id: "media", name: "Media Truth Engine", desc: "Spectral Error Level Analysis (ELA), audio spectrograms" },
+  { id: "media", name: "Media Truth Engine", desc: "Spectral Error Level Analysis (ELA), audio spectrograms, 2D FFT Moiré" },
   { id: "source", name: "Source Tracker", desc: "Cryptographic SHA-256 fingerprinting, pHash, C2PA provenance" },
   { id: "risk", name: "AI Risk Analyzer", desc: "Explainable Bayesian severity weighting and uncertainty rating" },
 ];
@@ -36,6 +37,13 @@ const sampleAttacks = [
     engine: "Identity Guardian",
     risk: "CRITICAL (99.98% Checksum Failure)",
     desc: "ICAO 9303 modulo-10 checksum mismatch on document number check digit.",
+  },
+  {
+    name: "Laundered AI Fake & Lying Canon EXIF",
+    filename: "CANON_EOS5D_AI_LAUNDERED.JPG",
+    engine: "Media Truth Engine",
+    risk: "METADATA FORGERY & LAUNDERED SUSPECT",
+    desc: "Screenshot-laundered AI fake with injected Canon 5D Mark IV EXIF. Caught via 2D FFT Moiré lattice and cross-modal physical contradiction (f/1.4 infinite focus & IJG software tables).",
   },
   {
     name: "CEO Wire Transfer Deepfake Audio",
@@ -401,6 +409,11 @@ export default function NewInvestigation() {
                 </div>
               </div>
             )}
+
+            {/* Laundered Fakes & Lying Metadata Shield Widget */}
+            <div className="mt-6">
+              <LaunderedFakesShield />
+            </div>
           </div>
         </div>
 

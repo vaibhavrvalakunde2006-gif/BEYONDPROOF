@@ -31,6 +31,8 @@ class RiskSummary(BaseModel):
     risk_category: str
     explanation: str
     individual_scores: Dict[str, float] = {}
+    authenticity_verdict: Optional[str] = "NO_TAMPERING_FOUND_UNVERIFIED"
+    authenticity_details: Optional[Dict[str, Any]] = None
 
 
 class VerificationResponse(BaseModel):

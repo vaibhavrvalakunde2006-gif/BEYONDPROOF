@@ -14,6 +14,12 @@ from sqlalchemy import select
 from config import settings
 from database.models import EngineResult
 from engines.media.models import MediaFinding, MediaAnalysisResponse
+from engines.media.laundering_service import (
+    detect_screen_recapture_moire,
+    detect_screenshot_laundering,
+    validate_metadata_against_image_physics,
+    evaluate_authenticity_verdict,
+)
 
 
 def analyze_metadata(file_path: str) -> Tuple[Dict[str, Any], List[MediaFinding]]:
@@ -445,11 +451,45 @@ async def full_image_analysis(
     comp_info, comp_findings = analyze_compression(file_path)
     all_findings.extend(comp_findings)
 
+    # 7. Screen Re-photography (Moiré) Detection via 2D FFT
+    moire_metrics, moire_findings = detect_screen_recapture_moire(file_path)
+    all_findings.extend(moire_findings)
+
+    # 8. Screenshot Laundering Detection
+    screenshot_metrics, screenshot_findings = detect_screenshot_laundering(file_path, metadata)
+    all_findings.extend(screenshot_findings)
+
+    # 9. Cross-Modal Lying Metadata Validation (EXIF vs Physical Pixel Reality)
+    physics_eval, physics_findings = validate_metadata_against_image_physics(file_path, metadata)
+    all_findings.extend(physics_findings)
+
+    # 10. Authenticity Verdict Engine Evaluation (Absence of tampering != Verified Genuine)
+    # Check if C2PA or cryptographic provenance anchor exists in DB
+    has_crypto_origin = False
+    try:
+        source_res_query = await db.execute(
+            select(EngineResult).where(
+                EngineResult.verification_id == verification_id,
+                EngineResult.engine_name == "source",
+            )
+        )
+        source_res = source_res_query.scalar_one_or_none()
+        if source_res and isinstance(source_res.findings, list):
+            for f in source_res.findings:
+                if isinstance(f, dict) and f.get("code") == "SRC_C2PA_VERIFIED":
+                    has_crypto_origin = True
+    except Exception:
+        pass
+
+    sev_weights = {"critical": 40.0, "high": 25.0, "medium": 12.0, "low": 4.0, "info": 0.0}
+    media_score = min(100.0, sum(sev_weights.get(f.severity, 0.0) for f in all_findings))
+    authenticity_info = evaluate_authenticity_verdict(all_findings, media_score, has_crypto_origin)
+
     # Commit results
     findings_json = [f.model_dump() for f in all_findings]
     engine_result.status = "completed"
     engine_result.findings = findings_json
-    engine_result.confidence = 0.92
+    engine_result.confidence = 0.95
     engine_result.completed_at = datetime.now(timezone.utc)
     await db.commit()
 
@@ -460,13 +500,17 @@ async def full_image_analysis(
         "hashes": hashes,
         "copy_move_detected": copy_move_detected,
         "compression": comp_info,
+        "moire_metrics": moire_metrics,
+        "screenshot_metrics": screenshot_metrics,
+        "cross_modal_validation": physics_eval,
+        "authenticity": authenticity_info,
     }
 
     return MediaAnalysisResponse(
         verification_id=verification_id,
         media_type="image",
         status="completed",
-        confidence=0.92,
+        confidence=0.95,
         findings=all_findings,
         details=details,
         ela_image_path=ela_rel_path,

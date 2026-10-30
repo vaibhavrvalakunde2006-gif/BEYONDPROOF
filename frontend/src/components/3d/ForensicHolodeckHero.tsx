@@ -40,7 +40,7 @@ interface SampleAttack {
   name: string;
   targetMode: HolodeckMode;
   filename: string;
-  verdict: 'FORGERY CONFIRMED' | 'DEEPFAKE SYNTHETIC' | 'CONTRACT SPLICED';
+  verdict: 'FORGERY CONFIRMED' | 'DEEPFAKE SYNTHETIC' | 'CONTRACT SPLICED' | 'METADATA FORGERY DETECTED';
   confidence: string;
   details: string;
   sha256: string;
@@ -85,6 +85,16 @@ export default function ForensicHolodeckHero({
 
   const sampleAttacks: SampleAttack[] = [
     {
+      id: 'laundered',
+      name: 'Laundered AI Fake & Lying EXIF',
+      targetMode: 'threat',
+      filename: 'CANON_EOS5D_AI_LAUNDERED.JPG',
+      verdict: 'METADATA FORGERY DETECTED',
+      confidence: '100% Cross-Modal Contradiction',
+      details: 'AI screenshot fake with forged Canon 5D Mark IV EXIF. Caught via 2D FFT Moiré lattice and f/1.4 infinite focus contradiction.',
+      sha256: '7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d',
+    },
+    {
       id: 'passport',
       name: 'Counterfeit Passport MRZ',
       targetMode: 'biometric',
@@ -125,14 +135,20 @@ export default function ForensicHolodeckHero({
         'Judges, in 2026, AI can forge any passport in 3 seconds. Black-box percentage guesses fail in court. BEYONDPROOF delivers deterministic mathematical proof across 7 continuous forensic microservices.',
     },
     {
+      mode: 'threat' as HolodeckMode,
+      title: '0:25 - 0:50 | Hackathon Hurdle: Laundered Fakes & Lying EXIF',
+      script:
+        'Attackers screenshot AI fakes to wipe traces and inject DSLR metadata. We prove absence of evidence is NOT authenticity: our 2D FFT Moiré detector and optical physics matrix instantly expose lying metadata.',
+    },
+    {
       mode: 'biometric' as HolodeckMode,
-      title: '0:25 - 0:50 | Identity Guardian: Biometric & MRZ Forensics',
+      title: '0:50 - 1:15 | Identity Guardian: Biometric & MRZ Forensics',
       script:
         'Here is the 3D biometric wireframe extracting 68 facial landmarks. We compute ICAO 9303 modulo-10 checksums with 7-3-1 weighting to mathematically isolate forged passports.',
     },
     {
       mode: 'ela' as HolodeckMode,
-      title: '0:50 - 1:15 | Media Truth: Spectral Frequency & ELA Terrain',
+      title: '1:15 - 1:40 | Media Truth: Spectral Frequency & ELA Terrain',
       script:
         'This 3D topological heightmap reveals pixel compression discrepancies. Spliced generative AI regions form elevated red ridges, proving audio/video tampering with zero false assumptions.',
     },

@@ -105,8 +105,9 @@ def generate_explanation(
     category: str,
     engines_run: int,
     engines_total: int,
+    authenticity_info: Optional[Dict[str, Any]] = None,
 ) -> str:
-    """Generate a legally sound forensic rationale explaining the risk classification."""
+    """Generate a legally sound forensic rationale explaining the risk classification and authenticity status."""
     narrative_parts = []
 
     if engines_run == 0:
@@ -115,17 +116,44 @@ def generate_explanation(
             "Asset authenticity remains unverified. Please trigger analysis engines to assess authenticity."
         )
 
-    if category == "unverified":
+    # Specific forensic alerts based on laundering or metadata forgery
+    verdict = (authenticity_info or {}).get("authenticity_verdict")
+
+    if verdict == "METADATA_FORGERY_DETECTED":
+        narrative_parts.append(
+            f"CRITICAL FORENSIC CONTRADICTION (Score: {overall_score}/100). "
+            "Lying metadata detected: File EXIF headers directly contradict physical optical and sensor reality "
+            "(sensor native aspect ratio mismatch, software quantization tables on claimed DSLR hardware, "
+            "or uniform infinite depth-of-field on claimed f/1.4 wide aperture). Metadata was forged."
+        )
+    elif verdict == "LAUNDERED_SUSPECT":
+        narrative_parts.append(
+            f"LAUNDERED ASSET SUSPECT (Score: {overall_score}/100). "
+            "Forensic laundering detected: 2D FFT harmonic lattice spikes (screen re-photography Moiré pattern) "
+            "or exact mobile/desktop display screen capture geometry identified. "
+            "The asset appears to have been re-photographed or screenshotted to wipe synthetic generation traces."
+        )
+    elif category == "unverified":
         narrative_parts.append(
             f"Asset status is UNVERIFIED. Only {engines_run} of {engines_total} requested analysis engines "
             f"were completed, representing insufficient forensic coverage to conclude authenticity."
         )
     elif category == "low_risk":
-        narrative_parts.append(
-            f"Asset assessed as LOW RISK (Composite Score: {overall_score}/100). "
-            f"Forensic inspection across {engines_run} engine(s) yielded no critical signs of synthesis, splicing, "
-            f"or structural tampering."
-        )
+        has_crypto = (authenticity_info or {}).get("has_cryptographic_origin", False)
+        if has_crypto:
+            narrative_parts.append(
+                f"Asset assessed as VERIFIED GENUINE (Score: {overall_score}/100). "
+                f"Forensic inspection across {engines_run} engine(s) found zero tampering artifacts, "
+                "and cryptographic C2PA provenance / hardware enclave signature was verified."
+            )
+        else:
+            narrative_parts.append(
+                f"Asset assessed as LOW RISK (Score: {overall_score}/100) — UNVERIFIED PROVENANCE. "
+                f"Forensic inspection across {engines_run} engine(s) yielded no active signs of tampering or synthesis. "
+                "CRITICAL FORENSIC DISTINCTION: Absence of evidence is NOT evidence of authenticity. "
+                "Without cryptographic C2PA provenance or raw hardware sensor verification, the asset cannot be certified genuine, "
+                "as laundering attacks (re-photography, screenshotting) intentionally eliminate digital tampering traces."
+            )
     elif category == "suspicious":
         narrative_parts.append(
             f"Asset assessed as SUSPICIOUS (Composite Score: {overall_score}/100). "
@@ -183,11 +211,14 @@ async def full_risk_analysis(
 
     individual_scores: Dict[str, float] = {}
     factors: List[RiskFactor] = []
+    all_findings_list: List[Dict[str, Any]] = []
 
     for res in completed_results:
         sc, top_finding = calculate_engine_score(res)
         individual_scores[res.engine_name] = sc
-        findings_count = len(res.findings) if isinstance(res.findings, list) else 0
+        findings = res.findings if isinstance(res.findings, list) else []
+        all_findings_list.extend(findings)
+        findings_count = len(findings)
 
         factors.append(
             RiskFactor(
@@ -201,8 +232,57 @@ async def full_risk_analysis(
 
     overall_score, normalized_weights = aggregate_risk(individual_scores)
     category = classify_risk(overall_score, engines_run, engines_total)
+
+    # Check for C2PA cryptographic provenance and laundering findings
+    has_crypto_origin = any(
+        f.get("code") == "SRC_C2PA_VERIFIED"
+        for f in all_findings_list if isinstance(f, dict)
+    )
+    has_metadata_forgery = any(
+        isinstance(f, dict) and f.get("code") in {
+            "METADATA_PHYSICAL_RESOLUTION_MISMATCH",
+            "METADATA_QUANTIZATION_HARDWARE_MISMATCH",
+            "METADATA_OPTICAL_DOF_MISMATCH",
+            "METADATA_SENSOR_ISO_NOISE_MISMATCH",
+        }
+        for f in all_findings_list
+    )
+    has_laundering = any(
+        isinstance(f, dict) and f.get("code") in {
+            "IMG_MOIRE_RECAPTURE_DETECTED",
+            "IMG_SCREENSHOT_LAUNDERING_DETECTED",
+        }
+        for f in all_findings_list
+    )
+
+    # Elevate category if metadata forgery was discovered
+    if has_metadata_forgery and category in ["low_risk", "suspicious"]:
+        category = "high_risk"
+    elif has_laundering and category == "low_risk":
+        category = "suspicious"
+
+    from engines.media.laundering_service import evaluate_authenticity_verdict
+    # Convert finding dicts to lightweight objects for evaluator if needed
+    from engines.media.models import MediaFinding
+    eval_findings = []
+    for f in all_findings_list:
+        if isinstance(f, dict) and "code" in f and "severity" in f:
+            eval_findings.append(
+                MediaFinding(
+                    code=f["code"],
+                    severity=f.get("severity", "info"),
+                    description=f.get("description", ""),
+                    evidence=f.get("evidence", ""),
+                    location=f.get("location"),
+                )
+            )
+
+    authenticity_info = evaluate_authenticity_verdict(
+        eval_findings, overall_score, has_crypto_origin
+    )
+
     explanation = generate_explanation(
-        individual_scores, overall_score, category, engines_run, engines_total
+        individual_scores, overall_score, category, engines_run, engines_total, authenticity_info
     )
 
     # Upsert RiskAssessment record
@@ -238,6 +318,8 @@ async def full_risk_analysis(
         verification_id=verification_id,
         overall_score=overall_score,
         risk_category=category,
+        authenticity_verdict=authenticity_info.get("authenticity_verdict", "NO_TAMPERING_FOUND_UNVERIFIED"),
+        authenticity_details=authenticity_info,
         weights_used=normalized_weights,
         individual_scores=individual_scores,
         factors=factors,

@@ -243,6 +243,34 @@ export default function Dashboard() {
         </ThreeDCard>
       </div>
 
+      {/* Hackathon Challenge Hurdle Badge: Laundered Fakes & Lying Metadata Shield */}
+      <div className="p-4 rounded-2xl bg-gradient-to-r from-amber-950/40 via-gray-900 to-amber-950/40 border border-amber-500/40 font-mono text-xs flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-[0_0_30px_rgba(245,158,11,0.1)]">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 shrink-0">
+            <ShieldCheck className="w-4 h-4" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-white text-sm">HURDLE SHIELD: Laundered Fakes & Lying Metadata</span>
+              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                ACTIVE
+              </span>
+            </div>
+            <p className="text-gray-400 text-[11px] mt-0.5">
+              Enforcing core truth principle: <strong className="text-amber-300">Absence of tampering ≠ Verified genuine</strong>. 2D FFT Moiré screen recapture &amp; cross-modal EXIF physics validation online.
+            </p>
+          </div>
+        </div>
+        <Link
+          href="/app/engines/media"
+          onClick={() => soundManager.playBlip()}
+          className="px-4 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 font-bold text-xs flex items-center gap-1.5 shrink-0 transition-all"
+        >
+          <span>Inspect Shield</span>
+          <ArrowUpRight className="w-3.5 h-3.5" />
+        </Link>
+      </div>
+
       {/* Grid: Recent Investigations & Quick Engine Access */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Cases Table (2 Cols) */}

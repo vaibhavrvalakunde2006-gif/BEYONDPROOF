@@ -20,6 +20,11 @@ class RiskAssessmentResponse(BaseModel):
     verification_id: str
     overall_score: float = Field(..., ge=0.0, le=100.0, description="Overall risk index: 0-100")
     risk_category: str = Field(..., description="low_risk, suspicious, unverified, high_risk")
+    authenticity_verdict: Optional[str] = Field(
+        default="NO_TAMPERING_FOUND_UNVERIFIED",
+        description="VERIFIED_GENUINE, NO_TAMPERING_FOUND_UNVERIFIED, LAUNDERED_SUSPECT, METADATA_FORGERY_DETECTED, HIGH_RISK_FORGERY",
+    )
+    authenticity_details: Optional[Dict[str, Any]] = None
     weights_used: Dict[str, float]
     individual_scores: Dict[str, float]
     factors: List[RiskFactor] = []

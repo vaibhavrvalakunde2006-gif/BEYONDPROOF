@@ -257,11 +257,36 @@ async def get_verification(
     risk = risk_q.scalar_one_or_none()
     risk_summary = None
     if risk:
+        from engines.media.laundering_service import evaluate_authenticity_verdict
+        from engines.media.models import MediaFinding
+
+        all_eval_findings = []
+        has_c2pa = False
+        for er in engine_summaries:
+            for f in (er.findings or []):
+                if isinstance(f, dict):
+                    if f.get("code") == "SRC_C2PA_VERIFIED":
+                        has_c2pa = True
+                    if "code" in f:
+                        all_eval_findings.append(
+                            MediaFinding(
+                                code=f["code"],
+                                severity=f.get("severity", "info"),
+                                description=f.get("description", ""),
+                                evidence=f.get("evidence", ""),
+                                location=f.get("location"),
+                            )
+                        )
+
+        auth_eval = evaluate_authenticity_verdict(all_eval_findings, risk.overall_score, has_c2pa)
+
         risk_summary = RiskSummary(
             overall_score=risk.overall_score,
             risk_category=risk.risk_category,
             explanation=risk.explanation,
             individual_scores=risk.individual_scores or {},
+            authenticity_verdict=auth_eval.get("authenticity_verdict", "NO_TAMPERING_FOUND_UNVERIFIED"),
+            authenticity_details=auth_eval,
         )
 
     return VerificationDetailResponse(
