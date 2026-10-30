@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, computed_field
 
 
 class GraphNodeModel(BaseModel):
@@ -24,6 +24,14 @@ class GraphEdgeModel(BaseModel):
     evidence: Optional[str] = None
     engine_source: str
     created_at: datetime
+
+    @computed_field
+    def source(self) -> str:
+        return self.source_node_id
+
+    @computed_field
+    def target(self) -> str:
+        return self.target_node_id
 
     class Config:
         from_attributes = True

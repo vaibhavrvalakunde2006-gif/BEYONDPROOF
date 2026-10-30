@@ -103,6 +103,7 @@ export interface DashboardStats {
 export interface DocumentAnalysisResult {
   file_id: string;
   extracted_text?: string;
+  fonts?: any[];
   metadata?: {
     author?: string;
     creator?: string;
@@ -144,7 +145,7 @@ export interface DocumentAnalysisResult {
 export interface MediaAnalysisResult {
   file_id: string;
   media_type: 'image' | 'video' | 'audio';
-  ela_image_url?: string;
+  ela_image_url?: string | null;
   metadata?: Record<string, any>;
   hashes?: {
     md5: string;
@@ -166,10 +167,17 @@ export interface MediaAnalysisResult {
     voice_cloned_probability?: number;
   };
   findings: Finding[];
+  confidence?: number;
+  status?: string;
+  details?: any;
 }
 
 export interface IdentityAnalysisResult {
   file_id: string;
+  face_detected?: boolean;
+  face_count?: number;
+  structure_valid?: boolean;
+  extracted_fields?: Record<string, string>;
   extracted_faces?: string[];
   ocr_text?: Record<string, string>;
   document_structure?: {
@@ -184,6 +192,9 @@ export interface IdentityAnalysisResult {
     detail: string;
   }>;
   findings: Finding[];
+  confidence?: number;
+  status?: string;
+  details?: any;
 }
 
 export interface SourceComparisonResult {

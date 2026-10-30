@@ -27,16 +27,19 @@ export default function MediaTruthPage() {
   const [analyzing, setAnalyzing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<MediaAnalysisResult | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleFileSelect = (file: File) => {
     setSelectedFile(file);
     setResult(null);
+    setErrorMessage(null);
   };
 
   const handleAnalyze = async () => {
     if (!selectedFile) return;
     setAnalyzing(true);
     setProgress(25);
+    setErrorMessage(null);
 
     try {
       // 1. Upload
@@ -54,111 +57,30 @@ export default function MediaTruthPage() {
         analyzeRes = await engineAPI.analyzeAudio({ file_id: fileId });
       }
       setProgress(100);
-      setResult(analyzeRes.data);
+      const data = analyzeRes.data;
+      const normalized = {
+        file_id: fileId,
+        media_type: mediaType,
+        fingerprint: data.details?.hashes?.sha256
+          ? `SHA256:${data.details.hashes.sha256.slice(0, 16)}...`
+          : `VERIF-${data.verification_id?.slice(0, 8)}`,
+        hashes: data.details?.hashes || {},
+        metadata: data.details?.metadata || {},
+        ela_image_url: data.ela_image_path ? `http://localhost:8000${data.ela_image_path}` : null,
+        findings: data.findings || [],
+        details: data.details || {},
+        confidence: data.confidence,
+        status: data.status,
+      };
+      setResult(normalized);
     } catch (err: any) {
-      console.error('Media analysis error, loading comprehensive forensic mock', err);
-      // Realistic fallback results for demonstration
-      if (mediaType === 'image') {
-        setResult({
-          file_id: 'img-forensic-01',
-          media_type: 'image',
-          ela_image_url: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"><rect width="400" height="300" fill="%230a0e1a"/><circle cx="200" cy="140" r="60" fill="%237c3aed" opacity="0.4"/><circle cx="210" cy="130" r="40" fill="%23ef4444" opacity="0.7"/><text x="110" y="270" fill="%2306b6d4" font-family="monospace" font-size="14">ELA RESIDUAL MAP: SPLICING DETECTED</text></svg>',
-          metadata: {
-            Camera_Model: 'Sony A7R IV',
-            Software: 'Adobe Photoshop 25.1 (macOS)',
-            Color_Space: 'sRGB IEC61966-2.1',
-            ISO: '400',
-            Focal_Length: '50mm f/1.8',
-            Exposure: '1/250s',
-          },
-          hashes: {
-            md5: '7d82e1c9812bc85da738217bbcc91012',
-            sha256: '9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08',
-            phash: '0xb4c3f81e72a1900d',
-            dhash: '0x12a9d82e118944cc',
-          },
-          fingerprint: 'BP-FP-IMG-9912048-A',
-          findings: [
-            {
-              code: 'ELA_RESIDUAL_GRADIENT_MISMATCH',
-              severity: 'high',
-              description: 'Error Level Analysis reveals significantly higher JPEG recompression residuals around central subject.',
-              evidence: 'Quantization table diff = 18.4% variance in block [X:160, Y:100, W:120, H:140].',
-            },
-            {
-              code: 'EXIF_METADATA_EDIT_HISTORY',
-              severity: 'medium',
-              description: 'Photoshop metadata history traces export through multiple layers.',
-              evidence: 'History action "Save" with format "image/jpeg" occurred 2 mins after original capture.',
-            },
-          ],
-        });
-      } else if (mediaType === 'video') {
-        setResult({
-          file_id: 'vid-forensic-02',
-          media_type: 'video',
-          metadata: {
-            Duration: '00:00:14.28',
-            Resolution: '1920x1080 (16:9)',
-            Codec: 'H.264 / AVC (High Profile)',
-            Bitrate: '8,420 kbps',
-            Frame_Rate: '29.97 fps (Constant)',
-          },
-          keyframes: [
-            'Frame 001 (00:00.00)',
-            'Frame 045 (00:01.50)',
-            'Frame 090 (00:03.00)',
-            'Frame 180 (00:06.00)',
-          ],
-          temporal_analysis: {
-            frame_rate: 29.97,
-            drop_frames: 0,
-            inconsistencies: [
-              'Temporal jitter identified between Frame 088 and Frame 094 (facial boundary flicker).',
-              'Optical flow vectors deviate across consecutive jawline keyframes.',
-            ],
-          },
-          fingerprint: 'BP-FP-VID-3301928-V',
-          findings: [
-            {
-              code: 'FACIAL_TEMPORAL_WARPING',
-              severity: 'critical',
-              description: 'Inter-frame optical flow analysis confirms synthetic facial reenactment deepfake markers.',
-              evidence: 'Phase correlation drops below 0.62 in frames 88-94 around ocular landmarks.',
-            },
-          ],
-        });
-      } else {
-        setResult({
-          file_id: 'aud-forensic-03',
-          media_type: 'audio',
-          metadata: {
-            Channels: '2 (Stereo)',
-            Sample_Rate: '48,000 Hz',
-            Bit_Depth: '24-bit PCM',
-            Format: 'WAV Linear PCM',
-            Duration: '00:00:28.15',
-          },
-          spectrogram_url: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200" viewBox="0 0 400 200"><rect width="400" height="200" fill="%23030712"/><path d="M10,100 Q60,20 120,90 T240,60 T380,120" stroke="%237c3aed" stroke-width="3" fill="none"/><path d="M10,130 Q70,40 140,110 T250,90 T380,150" stroke="%2306b6d4" stroke-width="2" fill="none"/><text x="20" y="180" fill="%239ca3af" font-family="monospace" font-size="12">SPECTRAL NYQUIST FREQUENCY CEILING: 16kHz CUTOFF</text></svg>',
-          frequency_analysis: {
-            synthetic_markers_detected: true,
-            pitch_anomalies: [
-              'Sharp unnatural brick-wall cutoff at 16,000 Hz characteristic of neural vocoders.',
-              'Robotic micro-tremor pitch variance below human vocal cord entropy thresholds.',
-            ],
-            voice_cloned_probability: 0.94,
-          },
-          fingerprint: 'BP-FP-AUD-8831920-W',
-          findings: [
-            {
-              code: 'NEURAL_VOICE_CLONE_DETECTED',
-              severity: 'critical',
-              description: 'Spectral cutoff and neural vocoder harmonic artifacts indicate synthetic voice clone.',
-              evidence: 'Harmonic-to-noise ratio: 0.94 voice cloning model match with ElevenLabs/Bark profile.',
-            },
-          ],
-        });
-      }
+      console.error('Media analysis error', err);
+      const msg =
+        err?.response?.data?.detail ||
+        err?.response?.data?.message ||
+        `Media forensic analysis failed for ${mediaType}. Ensure file format is valid.`;
+      setErrorMessage(typeof msg === 'string' ? msg : JSON.stringify(msg));
+      setResult(null);
     } finally {
       setAnalyzing(false);
     }
@@ -226,6 +148,16 @@ export default function MediaTruthPage() {
           <span>Audio Spectral</span>
         </button>
       </div>
+
+      {errorMessage && (
+        <div className="p-4 rounded-xl bg-red-950/40 border border-red-500/30 flex items-start gap-3 text-sm text-red-300">
+          <Activity className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="font-semibold text-red-200">Media Analysis Error</p>
+            <p className="mt-0.5">{errorMessage}</p>
+          </div>
+        </div>
+      )}
 
       {/* Upload Zone */}
       <div className="glass-card p-6">

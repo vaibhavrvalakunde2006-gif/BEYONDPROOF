@@ -41,6 +41,9 @@ class CompareResponse(BaseModel):
     file_1_hash: str
     file_2_hash: str
     details: Dict[str, Any] = {}
+    relationship: Optional[str] = None
+    content_diff_summary: Optional[str] = None
+    metadata_diff: Optional[Dict[str, Any]] = None
 
 
 class ProvenanceInfo(BaseModel):

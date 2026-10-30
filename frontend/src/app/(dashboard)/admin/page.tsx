@@ -42,16 +42,19 @@ export default function AdminDashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // Role guard: redirect if not admin
-    if (user && user.role !== 'admin') {
-      router.push('/dashboard');
-      return;
-    }
+  const [adminError, setAdminError] = useState<string | null>(null);
 
+  useEffect(() => {
     async function loadAdminData() {
+      if (!user) return;
+      if (user.role !== 'admin') {
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
+        setAdminError(null);
         const [dashRes, usersRes] = await Promise.allSettled([
           adminAPI.getDashboard(),
           adminAPI.getUsers(),
@@ -60,65 +63,59 @@ export default function AdminDashboardPage() {
         if (dashRes.status === 'fulfilled') {
           setStats(dashRes.value.data);
         } else {
-          // Fallback admin stats
+          console.error('Failed to load admin dashboard stats', dashRes.reason);
+          setAdminError('Failed to fetch platform dashboard telemetry.');
           setStats({
-            total_verifications: 148,
-            total_files: 132,
-            risk_distribution: { low_risk: 84, suspicious: 42, high_risk: 18, unverified: 4 },
+            total_verifications: 0,
+            total_files: 0,
+            risk_distribution: { low_risk: 0, suspicious: 0, high_risk: 0, unverified: 0 },
             recent_verifications: [],
-            engine_stats: {
-              'Identity Guardian': { total: 110, completed: 108, failed: 2 },
-              'Document Verifier': { total: 140, completed: 139, failed: 1 },
-              'Media Truth': { total: 95, completed: 92, failed: 3 },
-              'Source Tracker': { total: 130, completed: 130, failed: 0 },
-              'Trust Graph': { total: 125, completed: 125, failed: 0 },
-              'AI Risk Analyzer': { total: 148, completed: 148, failed: 0 },
-            },
+            engine_stats: {},
           });
         }
 
         if (usersRes.status === 'fulfilled') {
           setUsers(usersRes.value.data || []);
         } else {
-          setUsers([
-            {
-              id: 'usr-1',
-              email: 'admin@beyondproof.io',
-              full_name: 'Lead Forensics Administrator',
-              role: 'admin',
-              is_active: true,
-              created_at: '2024-01-01T08:00:00Z',
-            },
-            {
-              id: 'usr-2',
-              email: 'analyst1@cybersec.org',
-              full_name: 'Sarah Connor',
-              role: 'user',
-              is_active: true,
-              created_at: '2024-01-15T11:20:00Z',
-            },
-            {
-              id: 'usr-3',
-              email: 'investigator@frauddept.gov',
-              full_name: 'Marcus Vance',
-              role: 'user',
-              is_active: true,
-              created_at: '2024-02-04T14:10:00Z',
-            },
-          ]);
+          console.error('Failed to load user directory', usersRes.reason);
+          setUsers([]);
         }
+      } catch (err: any) {
+        console.error('Admin telemetry query error', err);
+        setAdminError(err?.message || 'Failed to load administrative console.');
       } finally {
         setLoading(false);
       }
     }
 
     loadAdminData();
-  }, [user, router]);
+  }, [user]);
 
   if (loading) {
     return (
       <div className="py-24 flex justify-center">
         <LoadingSpinner size="lg" label="Loading administrator console and user directory..." />
+      </div>
+    );
+  }
+
+  // Role guard: render access required screen if not admin
+  if (user && user.role !== 'admin') {
+    return (
+      <div className="max-w-xl mx-auto py-16 text-center space-y-4">
+        <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mx-auto">
+          <Lock className="w-8 h-8" />
+        </div>
+        <h1 className="text-xl font-bold text-gray-100">Administrator Access Required</h1>
+        <p className="text-xs text-gray-400 leading-relaxed">
+          The Operations Console is reserved for privileged platform administrators. Your current account (<span className="font-mono text-gray-300">{user.email}</span>) holds the standard <span className="text-cyan-400 font-semibold">{user.role.toUpperCase()}</span> role.
+        </p>
+        <div className="pt-2">
+          <Link href="/dashboard" className="btn-primary py-2.5 px-6 text-xs font-semibold inline-flex items-center gap-2">
+            <span>Return to Dashboard</span>
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
       </div>
     );
   }
@@ -130,14 +127,7 @@ export default function AdminDashboardPage() {
         runs: stat.total,
         completed: stat.completed,
       }))
-    : [
-        { engine: 'Doc Verifier', runs: 140, completed: 139 },
-        { engine: 'Identity', runs: 110, completed: 108 },
-        { engine: 'Media Truth', runs: 95, completed: 92 },
-        { engine: 'Source Tracker', runs: 130, completed: 130 },
-        { engine: 'Trust Graph', runs: 125, completed: 125 },
-        { engine: 'Risk Analyzer', runs: 148, completed: 148 },
-      ];
+    : [];
 
   return (
     <div className="space-y-8">
@@ -155,35 +145,41 @@ export default function AdminDashboardPage() {
         </p>
       </div>
 
+      {adminError && (
+        <div className="p-4 rounded-xl bg-amber-950/30 border border-amber-500/30 text-xs text-amber-300 flex items-start gap-3">
+          <AlertOctagon className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+          <div>
+            <span className="font-semibold block text-amber-200 mb-0.5">Telemetry Notice</span>
+            <span>{adminError}</span>
+          </div>
+        </div>
+      )}
+
       {/* Top Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <StatCard
           label="Total Registered Users"
-          value={users.length || 3}
+          value={users.length}
           icon={Users}
           accentColor="cyan"
-          trend={{ value: '+2', positive: true, label: 'this week' }}
         />
         <StatCard
           label="Total Pipelines Run"
-          value={stats?.total_verifications ?? 148}
+          value={stats?.total_verifications ?? 0}
           icon={Activity}
           accentColor="violet"
-          trend={{ value: '18% surge', positive: true }}
         />
         <StatCard
-          label="Engine Success Rate"
-          value="99.4%"
-          icon={Cpu}
+          label="Total Files Ingested"
+          value={stats?.total_files ?? 0}
+          icon={HardDrive}
           accentColor="emerald"
-          trend={{ value: 'Zero downtime', positive: true }}
         />
         <StatCard
           label="High Risk Quarantined"
-          value={stats?.risk_distribution?.high_risk ?? 18}
+          value={stats?.risk_distribution?.high_risk ?? 0}
           icon={ShieldAlert}
           accentColor="red"
-          trend={{ value: 'Automated flags', positive: false }}
         />
       </div>
 
@@ -197,26 +193,32 @@ export default function AdminDashboardPage() {
           <Badge variant="cyan">7 Active Microservices</Badge>
         </div>
 
-        <div className="h-64 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={engineChartData} margin={{ top: 10, right: 20, left: 0, bottom: 20 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" vertical={false} />
-              <XAxis dataKey="engine" stroke="#9ca3af" fontSize={11} tickLine={false} />
-              <YAxis stroke="#9ca3af" fontSize={11} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: '#111827',
-                  borderColor: '#374151',
-                  borderRadius: '8px',
-                  color: '#f9fafb',
-                  fontSize: '12px',
-                }}
-                cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }}
-              />
-              <Bar dataKey="runs" fill="#7c3aed" radius={[6, 6, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+        {engineChartData.length > 0 ? (
+          <div className="h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={engineChartData} margin={{ top: 10, right: 20, left: 0, bottom: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" vertical={false} />
+                <XAxis dataKey="engine" stroke="#9ca3af" fontSize={11} tickLine={false} />
+                <YAxis stroke="#9ca3af" fontSize={11} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#111827',
+                    borderColor: '#374151',
+                    borderRadius: '8px',
+                    color: '#f9fafb',
+                    fontSize: '12px',
+                  }}
+                  cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }}
+                />
+                <Bar dataKey="runs" fill="#7c3aed" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        ) : (
+          <div className="h-32 flex items-center justify-center text-xs text-gray-500">
+            No engine telemetry invocations recorded yet. Ingest and verify files to view workload distribution.
+          </div>
+        )}
       </div>
 
       {/* User Management Table */}
@@ -241,28 +243,36 @@ export default function AdminDashboardPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-800 text-gray-300">
-              {users.map((u) => (
-                <tr key={u.id} className="hover:bg-gray-900/40 transition-colors">
-                  <td className="py-3.5 px-4">
-                    <div className="font-semibold text-gray-100">{u.full_name}</div>
-                    <div className="text-[10px] font-mono text-gray-500">{u.id}</div>
-                  </td>
-                  <td className="py-3.5 px-4 font-mono text-gray-300">{u.email}</td>
-                  <td className="py-3.5 px-4">
-                    <Badge variant={u.role === 'admin' ? 'violet' : 'default'} size="sm">
-                      {u.role.toUpperCase()}
-                    </Badge>
-                  </td>
-                  <td className="py-3.5 px-4">
-                    <Badge variant={u.is_active ? 'success' : 'danger'} size="sm">
-                      {u.is_active ? 'ACTIVE' : 'SUSPENDED'}
-                    </Badge>
-                  </td>
-                  <td className="py-3.5 px-4 text-gray-400 whitespace-nowrap">
-                    {formatDate(u.created_at)}
+              {users.length > 0 ? (
+                users.map((u) => (
+                  <tr key={u.id} className="hover:bg-gray-900/40 transition-colors">
+                    <td className="py-3.5 px-4">
+                      <div className="font-semibold text-gray-100">{u.full_name || 'Unnamed Analyst'}</div>
+                      <div className="text-[10px] font-mono text-gray-500">{u.id}</div>
+                    </td>
+                    <td className="py-3.5 px-4 font-mono text-gray-300">{u.email}</td>
+                    <td className="py-3.5 px-4">
+                      <Badge variant={u.role === 'admin' ? 'violet' : 'default'} size="sm">
+                        {u.role.toUpperCase()}
+                      </Badge>
+                    </td>
+                    <td className="py-3.5 px-4">
+                      <Badge variant={u.is_active ? 'success' : 'danger'} size="sm">
+                        {u.is_active ? 'ACTIVE' : 'SUSPENDED'}
+                      </Badge>
+                    </td>
+                    <td className="py-3.5 px-4 text-gray-400 whitespace-nowrap">
+                      {formatDate(u.created_at)}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={5} className="py-8 text-center text-gray-500 font-medium">
+                    No registered user accounts found in tenant directory.
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>

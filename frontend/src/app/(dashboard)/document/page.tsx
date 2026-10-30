@@ -56,71 +56,12 @@ export default function DocumentVerifierPage() {
       setResult(analyzeRes.data);
     } catch (err: any) {
       console.error('Document analysis failed', err);
-      // Fallback preview data for demonstration when offline/unconnected
-      const fallbackFindings: Finding[] = [
-        {
-          code: 'DOC_FONT_SUBSET_INCONSISTENCY',
-          severity: 'medium',
-          description: 'Non-embedded glyphs detected in page 2 stream differing from standard document subsets.',
-          evidence: 'Font ArialMT differs from base embedded font HelveticaNeue-Light in rendering matrices.',
-        },
-        {
-          code: 'DOC_TIMESTAMP_MISMATCH',
-          severity: 'low',
-          description: 'Document modification date precedes object creation timestamp in trailer dictionary.',
-          evidence: 'ModDate: D:20240115120000Z vs CreationDate: D:20240210083000Z',
-        },
-      ];
-
-      setResult({
-        file_id: 'doc-fallback',
-        extracted_text:
-          'This is a forensic text extraction of the uploaded PDF document.\n\nAll strings have been sanitized and decoded from content streams.\nSignatures and watermarks were inspected for cryptographic integrity.\n\nParagraph 1: Executive verification summary confirming document structure complies with PDF/A specifications.\nParagraph 2: No incremental update tampering detected in trailing catalog references.',
-        metadata: {
-          author: 'Corporate Legal Operations',
-          creator: 'Adobe Acrobat Pro 24.2',
-          producer: 'macOS Version 14.5 Quartz PDFContext',
-          creation_date: '2024-03-12T14:22:00Z',
-          modification_date: '2024-03-12T14:25:30Z',
-          page_count: 4,
-          pdf_version: '1.7',
-        },
-        font_analysis: {
-          embedded_fonts: ['HelveticaNeue-Light', 'CourierNewPSMT', 'TimesNewRomanPS-BoldMT'],
-          anomalous_fonts: ['ArialMT (External Glyph Set)'],
-          is_consistent: false,
-          details: '1 font stream contains non-standard subsets typical of document modifications.',
-        },
-        layout_analysis: {
-          margins_consistent: true,
-          alignment_issues: false,
-          score: 92,
-          details: 'Bounding box margins and line baseline offsets conform to standard corporate letterhead layouts.',
-        },
-        qr_findings: [
-          {
-            data: 'https://verify.org/cert/8849-2910-4491',
-            valid: true,
-            redirects_to: 'https://verify.org/cert/8849-2910-4491',
-          },
-        ],
-        digital_signature: {
-          present: true,
-          valid: true,
-          signer: 'Global Sign Root CA — Document Signer #4',
-          certificate_issuer: 'GlobalSign Extended Validation Code Signing CA',
-          timestamp: '2024-03-12T14:25:00Z',
-        },
-        findings: fallbackFindings,
-        risk_assessment: {
-          id: 'risk-doc-1',
-          overall_score: 28,
-          risk_category: 'low_risk',
-          weights_used: { fonts: 0.3, metadata: 0.3, signatures: 0.4 },
-          individual_scores: { fonts: 40, metadata: 25, signatures: 10 },
-          explanation: 'Document is digitally signed and structurally authentic with minor font subset discrepancies.',
-        },
-      });
+      const msg =
+        err?.response?.data?.detail ||
+        err?.response?.data?.message ||
+        'Document forensic analysis failed. Please verify the uploaded file is a valid PDF or document.';
+      setErrorMessage(typeof msg === 'string' ? msg : JSON.stringify(msg));
+      setResult(null);
     } finally {
       setAnalyzing(false);
     }
@@ -134,9 +75,19 @@ export default function DocumentVerifierPage() {
           <span>Document Verifier Engine</span>
         </h1>
         <p className="text-sm text-gray-400 mt-1">
-          Forensic inspection of PDF object trees, font subset anomalies, layout tampering, and digital signatures.
+          Deep structural analysis of PDF containers, font streams, incremental updates, and embedded metadata.
         </p>
       </div>
+
+      {errorMessage && (
+        <div className="p-4 rounded-xl bg-red-950/40 border border-red-500/30 flex items-start gap-3 text-sm text-red-300">
+          <ShieldAlert className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="font-semibold text-red-200">Analysis Error</p>
+            <p className="mt-0.5">{errorMessage}</p>
+          </div>
+        </div>
+      )}
 
       {/* Upload Zone */}
       <div className="glass-card p-6">
@@ -299,30 +250,33 @@ export default function DocumentVerifierPage() {
                 </h3>
                 <div className="space-y-4 text-xs">
                   <div>
-                    <span className="text-gray-400 block mb-1">Embedded Font Subsets:</span>
-                    <ul className="space-y-1">
-                      {result.font_analysis?.embedded_fonts?.map((f) => (
-                        <li key={f} className="p-2 rounded bg-gray-900 font-mono text-gray-300 border border-gray-800">
-                          ✓ {f}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  {result.font_analysis?.anomalous_fonts && result.font_analysis.anomalous_fonts.length > 0 && (
-                    <div>
-                      <span className="text-amber-400 block mb-1 font-semibold">Anomalous / Modified Fonts:</span>
+                    <span className="text-gray-400 block mb-1">
+                      Detected Font Families ({result.metadata?.font_count || result.metadata?.font_families?.length || 0}):
+                    </span>
+                    {result.metadata?.font_families && result.metadata.font_families.length > 0 ? (
                       <ul className="space-y-1">
-                        {result.font_analysis.anomalous_fonts.map((f) => (
-                          <li key={f} className="p-2 rounded bg-amber-500/10 font-mono text-amber-300 border border-amber-500/20">
-                            ⚠ {f}
+                        {result.metadata.font_families.map((f: string) => (
+                          <li key={f} className="p-2 rounded bg-gray-900 font-mono text-gray-300 border border-gray-800">
+                            ✓ {f}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-xs text-gray-500 italic p-2">Standard system fonts detected.</p>
+                    )}
+                  </div>
+                  {result.fonts && result.fonts.length > 0 && (
+                    <div>
+                      <span className="text-gray-400 block mb-1 font-semibold">Font Stream References:</span>
+                      <ul className="space-y-1 max-h-48 overflow-y-auto">
+                        {result.fonts.slice(0, 10).map((f: any, idx: number) => (
+                          <li key={idx} className="p-2 rounded bg-gray-900/60 font-mono text-gray-400 border border-gray-800 text-[11px]">
+                            {f.font_name || f.name || JSON.stringify(f)}
                           </li>
                         ))}
                       </ul>
                     </div>
                   )}
-                  <p className="text-gray-400 text-xs pt-2 border-t border-gray-800">
-                    {result.font_analysis?.details}
-                  </p>
                 </div>
               </div>
 

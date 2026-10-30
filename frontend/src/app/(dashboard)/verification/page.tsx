@@ -38,92 +38,9 @@ export default function VerificationHubPage() {
         setLoading(true);
         const res = await verificationAPI.history();
         setVerifications(res.data || []);
-      } catch (err) {
+      } catch (err: any) {
         console.error('Failed to load verification history', err);
-        // Fallback sample data if empty
-        setVerifications([
-          {
-            id: 'VERIF-2024-99120',
-            file_id: 'file-001',
-            file: {
-              id: 'file-001',
-              filename: 'executive_contract_2024.pdf',
-              original_name: 'executive_contract_2024.pdf',
-              mime_type: 'application/pdf',
-              file_size: 1845000,
-              sha256_hash: '9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08',
-              file_type: 'document',
-              created_at: '2024-03-14T10:20:00Z',
-            },
-            status: 'completed',
-            engines_requested: ['document', 'source', 'trust_graph', 'risk_analyzer'],
-            created_at: '2024-03-14T10:20:00Z',
-            completed_at: '2024-03-14T10:20:03Z',
-            engine_results: [],
-            risk_assessment: {
-              id: 'risk-1',
-              overall_score: 18,
-              risk_category: 'low_risk',
-              weights_used: {},
-              individual_scores: {},
-              explanation: 'Document structure authenticated without anomalous font subsets.',
-            },
-          },
-          {
-            id: 'VERIF-2024-99121',
-            file_id: 'file-002',
-            file: {
-              id: 'file-002',
-              filename: 'board_meeting_audio_leak.wav',
-              original_name: 'board_meeting_audio_leak.wav',
-              mime_type: 'audio/wav',
-              file_size: 8940000,
-              sha256_hash: '4a8b92c108e40192837482910129384729102938472910293847192837461928',
-              file_type: 'audio',
-              created_at: '2024-03-13T16:45:00Z',
-            },
-            status: 'completed',
-            engines_requested: ['media', 'source', 'risk_analyzer'],
-            created_at: '2024-03-13T16:45:00Z',
-            completed_at: '2024-03-13T16:45:05Z',
-            engine_results: [],
-            risk_assessment: {
-              id: 'risk-2',
-              overall_score: 92,
-              risk_category: 'high_risk',
-              weights_used: {},
-              individual_scores: {},
-              explanation: 'Synthetic neural voice vocoder signatures identified at 16kHz ceiling.',
-            },
-          },
-          {
-            id: 'VERIF-2024-99122',
-            file_id: 'file-003',
-            file: {
-              id: 'file-003',
-              filename: 'kyc_passport_scan.jpg',
-              original_name: 'kyc_passport_scan.jpg',
-              mime_type: 'image/jpeg',
-              file_size: 3420000,
-              sha256_hash: '12e9b88492019482710293847192837461928374619283746192837461928374',
-              file_type: 'identity',
-              created_at: '2024-03-12T09:12:00Z',
-            },
-            status: 'completed',
-            engines_requested: ['identity', 'media', 'source', 'trust_graph', 'risk_analyzer'],
-            created_at: '2024-03-12T09:12:00Z',
-            completed_at: '2024-03-12T09:12:04Z',
-            engine_results: [],
-            risk_assessment: {
-              id: 'risk-3',
-              overall_score: 65,
-              risk_category: 'suspicious',
-              weights_used: {},
-              individual_scores: {},
-              explanation: 'Subtle boundary gradient smoothing around portrait headshot.',
-            },
-          },
-        ]);
+        setVerifications([]);
       } finally {
         setLoading(false);
       }
@@ -134,26 +51,18 @@ export default function VerificationHubPage() {
   const handleDownloadReport = async (id: string, filename: string) => {
     try {
       const res = await verificationAPI.downloadReport(id);
-      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const blob = new Blob([res.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       link.setAttribute('download', `beyondproof-audit-${id}.pdf`);
       document.body.appendChild(link);
       link.click();
       link.remove();
-    } catch {
-      // Create client-side text report if blob endpoint is mock
-      const blob = new Blob(
-        [`BEYONDPROOF CERTIFIED FORENSIC AUDIT REPORT\nVerification ID: ${id}\nTarget: ${filename}\nStatus: Certified\nTimestamp: ${new Date().toISOString()}`],
-        { type: 'text/plain' }
-      );
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `beyondproof-report-${id}.txt`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Download report error', err);
+      alert('Failed to download PDF audit report. Please ensure the verification is complete.');
     }
   };
 

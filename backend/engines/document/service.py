@@ -546,9 +546,12 @@ async def full_document_analysis(
 
     return DocumentAnalysisResponse(
         verification_id=verification_id,
+        file_id=file_id,
         status="completed",
         confidence=0.90,
         findings=all_findings,
         metadata=summary,
+        extracted_text=extracted_text,
+        fonts=fonts_list,
         completed_at=engine_result.completed_at,
     )

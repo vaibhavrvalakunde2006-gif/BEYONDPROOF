@@ -67,20 +67,36 @@ async def compare_files_endpoint(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
 
-@router.get("/history/{file_id}", response_model=List[FingerprintResponse])
+@router.get("/history/{query}", response_model=List[FingerprintResponse])
 async def get_file_fingerprint_history(
-    file_id: str,
+    query: str,
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Retrieve historical fingerprint registrations for a specific file."""
-    file_query = await db.execute(select(UploadedFile).where(UploadedFile.id == file_id))
-    file_record = file_query.scalar_one_or_none()
-    if not file_record:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found.")
+    """Retrieve historical fingerprint registrations by file ID or SHA-256 hash."""
+    clean_q = query.strip()
+    # 1. Check direct match in FileFingerprint
+    fp_q = await db.execute(
+        select(FileFingerprint).where(
+            (FileFingerprint.sha256 == clean_q) | (FileFingerprint.file_id == clean_q)
+        ).order_by(FileFingerprint.registered_at.desc())
+    )
+    direct_fps = list(fp_q.scalars().all())
+    if direct_fps:
+        return [FingerprintResponse.model_validate(h) for h in direct_fps]
 
-    history = await check_fingerprint_history(file_record.sha256_hash, db)
-    return [FingerprintResponse.model_validate(h) for h in history]
+    # 2. Check UploadedFile
+    file_query = await db.execute(
+        select(UploadedFile).where(
+            (UploadedFile.id == clean_q) | (UploadedFile.sha256_hash == clean_q)
+        )
+    )
+    file_record = file_query.scalar_one_or_none()
+    if file_record:
+        history = await check_fingerprint_history(file_record.sha256_hash, db)
+        return [FingerprintResponse.model_validate(h) for h in history]
+
+    return []
 
 
 @router.get("/{verification_id}/results", response_model=SourceAnalysisResponse)

@@ -1,4 +1,5 @@
 import os
+import html
 from typing import Dict, Any, List
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
@@ -135,7 +136,7 @@ def generate_pdf_report(verification_data: Dict[str, Any], output_path: str) -> 
 
     # 3. File Asset Attributes
     story.append(Paragraph("TARGET ASSET PROFILE", section_h1))
-    f_name = verification_data.get("file_name", "Unknown")
+    f_name = html.escape(str(verification_data.get("file_name", "Unknown")))
     f_type = str(verification_data.get("file_type", "Unknown")).upper()
     f_size = f"{verification_data.get('file_size', 0):,} bytes"
     f_hash = verification_data.get("sha256", "N/A")
@@ -194,7 +195,7 @@ def generate_pdf_report(verification_data: Dict[str, Any], output_path: str) -> 
     story.append(t_verdict)
     story.append(Spacer(1, 6))
 
-    explanation = verification_data.get("explanation", "No narrative available.")
+    explanation = html.escape(str(verification_data.get("explanation", "No narrative available.")))
     story.append(Paragraph(f"<b>Evaluation Rationale:</b> {explanation}", body_style))
     story.append(Spacer(1, 10))
 
@@ -256,10 +257,15 @@ def generate_pdf_report(verification_data: Dict[str, Any], output_path: str) -> 
             sev = str(f.get("severity", "info")).lower()
             hex_c = sev_colors.get(sev, "#475569")
             sev_p = Paragraph(f"<font color='{hex_c}'><b>{sev.upper()}</b></font>", meta_label)
-            code_p = Paragraph(f"<b>{f.get('code', '')}</b>", meta_val)
-            desc_text = f"{f.get('description', '')}<br/><font color='#64748B' size=7>Evidence: {f.get('evidence', '')}</font>"
+            code_safe = html.escape(str(f.get('code', '')))
+            code_p = Paragraph(f"<b>{code_safe}</b>", meta_val)
+            desc_safe = html.escape(str(f.get('description', '')))
+            ev_safe = html.escape(str(f.get('evidence', '')))
+            desc_text = f"{desc_safe}<br/><font color='#64748B' size=7>Evidence: {ev_safe}</font>"
             desc_p = Paragraph(desc_text, meta_val)
-            loc_text = f"{f.get('engine', '')}<br/>{f.get('location', '') or ''}"
+            loc_safe = html.escape(str(f.get('location', '') or ''))
+            eng_safe = html.escape(str(f.get('engine', '') or ''))
+            loc_text = f"{eng_safe}<br/>{loc_safe}"
             loc_p = Paragraph(loc_text, meta_val)
 
             f_rows.append([sev_p, code_p, desc_p, loc_p])

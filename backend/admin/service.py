@@ -1,6 +1,6 @@
 from typing import Dict, Any, List
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import select, func, case
 
 from database.models import (
     User,
@@ -121,8 +121,8 @@ async def get_engine_stats(db: AsyncSession) -> List[Dict[str, Any]]:
         select(
             EngineResult.engine_name,
             func.count(EngineResult.id).label("total_runs"),
-            func.sum(func.case((EngineResult.status == "completed", 1), else_=0)).label("completed"),
-            func.sum(func.case((EngineResult.status == "failed", 1), else_=0)).label("failed"),
+            func.sum(case((EngineResult.status == "completed", 1), else_=0)).label("completed"),
+            func.sum(case((EngineResult.status == "failed", 1), else_=0)).label("failed"),
             func.avg(EngineResult.confidence).label("avg_confidence"),
         )
         .group_by(EngineResult.engine_name)

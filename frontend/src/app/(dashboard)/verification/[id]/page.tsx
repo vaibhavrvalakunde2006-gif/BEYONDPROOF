@@ -90,155 +90,9 @@ export default function VerificationReportPage() {
             ],
           });
         }
-      } catch (err) {
-        console.error('Failed to load verification report, using robust mock report', err);
-        const fallbackResults: EngineResult[] = [
-          {
-            id: 'res-doc',
-            engine_name: 'document_verifier',
-            status: 'completed',
-            confidence: 0.94,
-            error_message: null,
-            started_at: '2024-03-14T10:20:00Z',
-            completed_at: '2024-03-14T10:20:01Z',
-            findings: [
-              {
-                code: 'DOC_FONT_SUBSET_MISMATCH',
-                severity: 'medium',
-                description: 'Anomalous non-embedded ArialMT font glyphs detected on page 2.',
-                evidence: 'Font dictionary differs from global HelveticaNeue-Light stream definition.',
-              },
-            ],
-          },
-          {
-            id: 'res-id',
-            engine_name: 'identity_guardian',
-            status: 'completed',
-            confidence: 0.88,
-            error_message: null,
-            started_at: '2024-03-14T10:20:01Z',
-            completed_at: '2024-03-14T10:20:02Z',
-            findings: [
-              {
-                code: 'ID_PORTRAIT_BLENDING',
-                severity: 'high',
-                description: 'Facial boundary standard deviation drop indicates potential headshot splicing.',
-                evidence: 'Ocular landmarks exhibit synthetic neural sharpening with boundary halo.',
-              },
-            ],
-          },
-          {
-            id: 'res-media',
-            engine_name: 'media_truth',
-            status: 'completed',
-            confidence: 0.91,
-            error_message: null,
-            started_at: '2024-03-14T10:20:02Z',
-            completed_at: '2024-03-14T10:20:03Z',
-            findings: [
-              {
-                code: 'ELA_RESIDUAL_MISMATCH',
-                severity: 'high',
-                description: 'High JPEG recompression variance across central object coordinates.',
-                evidence: 'Variance = 18.4% compared to uniform baseline background.',
-              },
-            ],
-          },
-          {
-            id: 'res-source',
-            engine_name: 'source_tracker',
-            status: 'completed',
-            confidence: 0.99,
-            error_message: null,
-            started_at: '2024-03-14T10:20:03Z',
-            completed_at: '2024-03-14T10:20:03Z',
-            findings: [],
-          },
-        ];
-
-        setVerification({
-          id: id || 'VERIF-2024-DEMO',
-          file_id: 'file-demo',
-          file: {
-            id: 'file-demo',
-            filename: 'suspect_identity_document.pdf',
-            original_name: 'suspect_identity_document.pdf',
-            mime_type: 'application/pdf',
-            file_size: 2480000,
-            sha256_hash: '9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08',
-            file_type: 'document',
-            created_at: '2024-03-14T10:19:45Z',
-          },
-          status: 'completed',
-          engines_requested: ['document_verifier', 'identity_guardian', 'media_truth', 'source_tracker'],
-          created_at: '2024-03-14T10:20:00Z',
-          completed_at: '2024-03-14T10:20:04Z',
-          engine_results: fallbackResults,
-          risk_assessment: {
-            id: 'risk-assessment-01',
-            overall_score: 72,
-            risk_category: 'high_risk',
-            weights_used: {
-              document_verifier: 0.25,
-              identity_guardian: 0.35,
-              media_truth: 0.25,
-              source_tracker: 0.15,
-            },
-            individual_scores: {
-              document_verifier: 45,
-              identity_guardian: 85,
-              media_truth: 80,
-              source_tracker: 10,
-            },
-            explanation:
-              'Forensic inspection determined strong indicators of digital composition and facial tampering. Error Level Analysis and portrait edge blending corroborate localized synthetic forgery.',
-          },
-        });
-        setActiveEngineTab('document_verifier');
-
-        setGraphData({
-          nodes: [
-            {
-              id: 'node-f1',
-              node_type: 'file',
-              label: 'suspect_identity_document.pdf',
-              properties: { size: '2.48 MB' },
-              engine_source: 'Document Verifier',
-            },
-            {
-              id: 'node-v1',
-              node_type: 'verification',
-              label: id,
-              properties: { status: 'completed' },
-              engine_source: 'Verification Hub',
-            },
-            {
-              id: 'node-err1',
-              node_type: 'finding',
-              label: 'Portrait Blending Halo',
-              properties: { severity: 'high' },
-              engine_source: 'Identity Guardian',
-            },
-          ],
-          edges: [
-            {
-              id: 'e1',
-              source: 'node-f1',
-              target: 'node-v1',
-              relationship: 'INSPECTED_UNDER',
-              evidence: 'SHA-256 matching',
-              engine_source: 'Hub',
-            },
-            {
-              id: 'e2',
-              source: 'node-v1',
-              target: 'node-err1',
-              relationship: 'DETECTED_TAMPERING',
-              evidence: 'Edge variance test',
-              engine_source: 'Identity Guardian',
-            },
-          ],
-        });
+      } catch (err: any) {
+        console.error('Failed to load verification report', err);
+        setVerification(null);
       } finally {
         setLoading(false);
       }
@@ -249,27 +103,18 @@ export default function VerificationReportPage() {
   const handleDownloadReport = async () => {
     try {
       const res = await verificationAPI.downloadReport(id);
-      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const blob = new Blob([res.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       link.setAttribute('download', `beyondproof-report-${id}.pdf`);
       document.body.appendChild(link);
       link.click();
       link.remove();
-    } catch {
-      const blob = new Blob(
-        [
-          `BEYONDPROOF FORENSIC VERIFICATION AUDIT REPORT\nID: ${id}\nDate: ${verification?.created_at}\nFile: ${verification?.file?.filename}\nSHA-256: ${verification?.file?.sha256_hash}\nRisk Category: ${verification?.risk_assessment?.risk_category}\nRisk Score: ${verification?.risk_assessment?.overall_score}/100\nExplanation: ${verification?.risk_assessment?.explanation}\nCertified by BEYONDPROOF Zero-Knowledge Core.`,
-        ],
-        { type: 'text/plain' }
-      );
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `beyondproof-report-${id}.txt`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Download report error', err);
+      alert('Failed to download PDF audit report. Ensure the verification pipeline has completed.');
     }
   };
 

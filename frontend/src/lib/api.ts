@@ -42,7 +42,7 @@ export const authAPI = {
   login: (data: { email: string; password: string }) =>
     api.post('/api/auth/login', data),
   getProfile: () => api.get('/api/auth/me'),
-  updateProfile: (data: { full_name?: string }) => api.put('/api/auth/me', data),
+  updateProfile: (data: { full_name?: string; password?: string }) => api.put('/api/auth/me', data),
 };
 
 // Files API
@@ -55,7 +55,7 @@ export const filesAPI = {
     });
   },
   get: (fileId: string) => api.get(`/api/files/${fileId}`),
-  list: () => api.get('/api/files/'),
+  list: () => api.get('/api/files'),
   delete: (fileId: string) => api.delete(`/api/files/${fileId}`),
 };
 
@@ -65,6 +65,7 @@ export const verificationAPI = {
     api.post('/api/verification/create', data),
   get: (id: string) => api.get(`/api/verification/${id}`),
   history: () => api.get('/api/verification/history'),
+  stats: () => api.get('/api/verification/dashboard/stats'),
   downloadReport: (id: string) =>
     api.get(`/api/verification/${id}/report`, { responseType: 'blob' }),
 };
@@ -76,7 +77,7 @@ export const engineAPI = {
   analyzeVideo: (data: { file_id: string }) => api.post('/api/media/video/analyze', data),
   analyzeAudio: (data: { file_id: string }) => api.post('/api/media/audio/analyze', data),
   analyzeIdentity: (data: { file_id: string }) => api.post('/api/identity/analyze', data),
-  getSourceHistory: (fileId: string) => api.get(`/api/source/history/${fileId}`),
+  getSourceHistory: (query: string) => api.get(`/api/source/history/${encodeURIComponent(query)}`),
   compareFiles: (data: { file_id_1: string; file_id_2: string }) => api.post('/api/source/compare', data),
   getGraph: (verificationId: string) => api.get(`/api/graph/${verificationId}`),
   getRisk: (verificationId: string) => api.get(`/api/risk/${verificationId}/assessment`),
@@ -86,4 +87,6 @@ export const engineAPI = {
 export const adminAPI = {
   getDashboard: () => api.get('/api/admin/dashboard'),
   getUsers: () => api.get('/api/admin/users'),
+  getActivity: () => api.get('/api/admin/activity'),
+  getEngines: () => api.get('/api/admin/engines'),
 };

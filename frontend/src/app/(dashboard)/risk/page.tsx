@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import {
   Brain,
   ShieldCheck,
@@ -35,34 +36,13 @@ export default function RiskAnalyzerPage() {
   const [selectedVerificationId, setSelectedVerificationId] = useState<string>('');
   const [assessment, setAssessment] = useState<RiskAssessment | null>(null);
   const [loading, setLoading] = useState(true);
-
-  // Mock comprehensive fallback assessment
-  const fallbackAssessment: RiskAssessment = {
-    id: 'risk-synthesis-01',
-    overall_score: 64,
-    risk_category: 'suspicious',
-    weights_used: {
-      'Document Verifier': 0.25,
-      'Identity Guardian': 0.3,
-      'Media Truth (AFTERIMAGE)': 0.25,
-      'Source Tracker': 0.1,
-      'Trust Graph': 0.1,
-    },
-    individual_scores: {
-      'Document Verifier': 45,
-      'Identity Guardian': 82,
-      'Media Truth': 70,
-      'Source Tracker': 30,
-      'Trust Graph': 55,
-    },
-    explanation:
-      'Multi-engine synthesis identified severe biometric and localized image splicing anomalies. While document container structures conform to PDF specifications, facial boundary standard deviations and frequency cutoffs exceed high-confidence authentic thresholds.',
-  };
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadData() {
       try {
         setLoading(true);
+        setErrorMessage(null);
         const res = await verificationAPI.history();
         const list: VerificationRequest[] = res.data || [];
         setVerifications(list);
@@ -76,15 +56,18 @@ export default function RiskAnalyzerPage() {
             try {
               const riskRes = await engineAPI.getRisk(first.id);
               setAssessment(riskRes.data);
-            } catch {
-              setAssessment(fallbackAssessment);
+            } catch (rErr: any) {
+              console.warn('Risk evaluation pending or unavailable', rErr);
+              setAssessment(null);
             }
           }
         } else {
-          setAssessment(fallbackAssessment);
+          setAssessment(null);
         }
-      } catch {
-        setAssessment(fallbackAssessment);
+      } catch (err: any) {
+        console.error('Failed to load verification history', err);
+        setErrorMessage(err?.response?.data?.detail || 'Unable to retrieve verification risk history.');
+        setAssessment(null);
       } finally {
         setLoading(false);
       }
@@ -94,6 +77,7 @@ export default function RiskAnalyzerPage() {
 
   const handleSelect = async (id: string) => {
     setSelectedVerificationId(id);
+    setErrorMessage(null);
     const target = verifications.find((v) => v.id === id);
     if (target?.risk_assessment) {
       setAssessment(target.risk_assessment);
@@ -101,8 +85,10 @@ export default function RiskAnalyzerPage() {
       try {
         const res = await engineAPI.getRisk(id);
         setAssessment(res.data);
-      } catch {
-        setAssessment(fallbackAssessment);
+      } catch (rErr: any) {
+        console.error('Failed to fetch risk for verification', rErr);
+        setErrorMessage('Risk score calculation is in progress or unavailable for this session.');
+        setAssessment(null);
       }
     }
   };
@@ -115,23 +101,68 @@ export default function RiskAnalyzerPage() {
       }))
     : [];
 
-  const recommendedActions = [
-    {
-      action: 'Escalate to Senior Forensic Investigator',
-      priority: 'high',
-      detail: 'Biometric portrait exhibits composite blending indicative of synthetic identity spoofing.',
-    },
-    {
-      action: 'Request Cryptographically Signed Primary Source',
-      priority: 'medium',
-      detail: 'Require submission of native camera RAW or original hardware secure-enclave signed PDF.',
-    },
-    {
-      action: 'Log Entity Node to Threat Watchlist',
-      priority: 'low',
-      detail: 'Anchor the SHA-256 and pHash into the organization-wide fraud correlation index.',
-    },
-  ];
+  const getDynamicRecommendations = (score: number, category: string) => {
+    if (category === 'high_risk' || score >= 70) {
+      return [
+        {
+          action: 'Quarantine Asset Immediately',
+          priority: 'high',
+          detail: 'Critical integrity anomalies or structural tampering detected. Block ingestion into production downstream workflows.',
+        },
+        {
+          action: 'Escalate to Senior Forensic Reviewer',
+          priority: 'high',
+          detail: 'Elevated risk synthesis requires manual verification of flagged finding nodes before any certification.',
+        },
+        {
+          action: 'Export Cryptographically Signed Forensic Dossier',
+          priority: 'medium',
+          detail: 'Generate tamper-evident PDF inspection report containing SHA-256 evidence hashes for compliance logging.',
+        },
+      ];
+    } else if (category === 'suspicious' || score >= 35) {
+      return [
+        {
+          action: 'Secondary Multi-Engine Audit',
+          priority: 'high',
+          detail: 'Moderate risk indicators present. Review individual engine scores to isolate specific anomaly vectors.',
+        },
+        {
+          action: 'Compare Against Baseline Version',
+          priority: 'medium',
+          detail: 'Use Source Tracker to run a dual-file perceptual and cryptographic comparison against known earlier versions.',
+        },
+        {
+          action: 'Hold in Pending Verification Queue',
+          priority: 'low',
+          detail: 'Require additional secondary sign-off prior to authorizing file consumption in enterprise pipelines.',
+        },
+      ];
+    } else {
+      return [
+        {
+          action: 'Certify for Ingestion & Production Use',
+          priority: 'low',
+          detail: 'All forensic microservices returned authentic baselines with zero critical anomalies detected.',
+        },
+        {
+          action: 'Anchor Cryptographic Fingerprint',
+          priority: 'low',
+          detail: 'Record SHA-256 hash in provenance registry to guarantee tamper-detection for all future derivatives.',
+        },
+        {
+          action: 'Archive Forensic Audit Trail',
+          priority: 'low',
+          detail: 'Store engine telemetry in the immutable audit log for SOC2 and regulatory audit compliance.',
+        },
+      ];
+    }
+  };
+
+  const recommendedActions = getDynamicRecommendations(
+    assessment?.overall_score ?? 0,
+    assessment?.risk_category ?? 'unverified'
+  );
 
   return (
     <div className="space-y-8">
@@ -165,9 +196,34 @@ export default function RiskAnalyzerPage() {
         )}
       </div>
 
+      {/* Error banner */}
+      {errorMessage && (
+        <div className="p-4 rounded-xl bg-amber-950/30 border border-amber-500/30 text-xs text-amber-300 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+          <div>
+            <span className="font-semibold block text-amber-200 mb-0.5">Risk Analysis Notice</span>
+            <span>{errorMessage}</span>
+          </div>
+        </div>
+      )}
+
       {loading ? (
         <div className="py-20 flex justify-center">
           <LoadingSpinner size="lg" label="Computing Bayesian risk distributions..." />
+        </div>
+      ) : verifications.length === 0 ? (
+        <div className="glass-card p-12 text-center space-y-4">
+          <Brain className="w-12 h-12 text-fuchsia-400/60 mx-auto" />
+          <h3 className="text-base font-bold text-gray-200">No Forensic Risk Assessments Available</h3>
+          <p className="text-xs text-gray-400 max-w-lg mx-auto leading-relaxed">
+            The Deterministic AI Risk Analyzer computes a mathematically explainable risk score across Document, Media, Identity, and Source engines. Run a verification on any file to compute its comprehensive threat score.
+          </p>
+          <div className="pt-2">
+            <Link href="/verification" className="btn-primary py-2.5 px-6 text-xs font-semibold inline-flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4" />
+              <span>Launch Verification Hub</span>
+            </Link>
+          </div>
         </div>
       ) : (
         <div className="space-y-6">
@@ -176,8 +232,8 @@ export default function RiskAnalyzerPage() {
             {/* Risk Gauge Card */}
             <div className="glass-card p-6 flex flex-col items-center justify-center">
               <RiskGauge
-                score={assessment?.overall_score ?? 60}
-                category={assessment?.risk_category ?? 'suspicious'}
+                score={assessment?.overall_score ?? 0}
+                category={assessment?.risk_category ?? 'unverified'}
                 size={180}
               />
             </div>

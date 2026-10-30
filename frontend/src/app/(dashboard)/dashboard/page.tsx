@@ -36,15 +36,16 @@ export default function DashboardPage() {
     async function loadDashboard() {
       try {
         setLoading(true);
-        // Try admin dashboard first
+        // Call user dashboard stats endpoint
+        const res = await verificationAPI.stats();
+        const data = res.data;
+        setStats(data);
+        if (data.recent_verifications) {
+          setRecentVerifications(data.recent_verifications);
+        }
+      } catch (err) {
+        console.error('Failed to load dashboard data, falling back to history', err);
         try {
-          const res = await adminAPI.getDashboard();
-          setStats(res.data);
-          if (res.data.recent_verifications) {
-            setRecentVerifications(res.data.recent_verifications);
-          }
-        } catch {
-          // Fallback to verification history
           const historyRes = await verificationAPI.history();
           const items: VerificationRequest[] = historyRes.data || [];
           setRecentVerifications(items.slice(0, 10));
@@ -66,9 +67,9 @@ export default function DashboardPage() {
             recent_verifications: items.slice(0, 10),
             engine_stats: {},
           });
+        } catch (innerErr) {
+          console.error('Failed to load verification history', innerErr);
         }
-      } catch (err) {
-        console.error('Failed to load dashboard data', err);
       } finally {
         setLoading(false);
       }
@@ -133,28 +134,28 @@ export default function DashboardPage() {
           value={stats?.total_verifications ?? 0}
           icon={CheckCircle}
           accentColor="violet"
-          trend={{ value: '12%', positive: true, label: 'vs last week' }}
+          trend={{ value: `${stats?.total_verifications ?? 0} verified`, positive: true }}
         />
         <StatCard
           label="Files Analyzed"
           value={stats?.total_files ?? 0}
           icon={FileCheck}
           accentColor="cyan"
-          trend={{ value: '8%', positive: true }}
+          trend={{ value: `${stats?.total_files ?? 0} ingested`, positive: true }}
         />
         <StatCard
           label="Suspicious Detected"
           value={suspiciousTotal}
           icon={AlertTriangle}
           accentColor={suspiciousTotal > 0 ? 'red' : 'emerald'}
-          trend={{ value: `${suspiciousTotal} flags`, positive: false }}
+          trend={{ value: suspiciousTotal > 0 ? `${suspiciousTotal} elevated risk` : '0 anomalies', positive: suspiciousTotal === 0 }}
         />
         <StatCard
           label="Engines Active"
           value="7 / 7"
           icon={Cpu}
           accentColor="emerald"
-          trend={{ value: '100% Operational', positive: true }}
+          trend={{ value: 'Full Coverage', positive: true }}
         />
       </div>
 

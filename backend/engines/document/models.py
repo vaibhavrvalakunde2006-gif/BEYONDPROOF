@@ -32,11 +32,14 @@ class DocumentMetadataSummary(BaseModel):
 
 class DocumentAnalysisResponse(BaseModel):
     verification_id: str
+    file_id: Optional[str] = None
     engine_name: str = "document"
     status: str = Field(..., description="completed, failed, or skipped")
     confidence: float = Field(default=0.85, ge=0.0, le=1.0)
     findings: List[DocumentFinding] = []
     metadata: Optional[DocumentMetadataSummary] = None
+    extracted_text: Optional[str] = None
+    fonts: Optional[List[Dict[str, Any]]] = None
     error_message: Optional[str] = None
     completed_at: Optional[datetime] = None
 

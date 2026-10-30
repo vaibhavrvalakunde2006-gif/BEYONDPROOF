@@ -155,7 +155,7 @@ async def get_media_results(
             EngineResult.engine_name.in_(["media_image", "media_video", "media_audio", "media"]),
         )
     )
-    engine_result = engine_query.scalar_one_or_none()
+    engine_result = engine_query.scalars().first()
     if not engine_result:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

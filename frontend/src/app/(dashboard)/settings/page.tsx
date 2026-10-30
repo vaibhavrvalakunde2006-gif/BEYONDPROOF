@@ -78,12 +78,20 @@ export default function SettingsPage() {
     setPasswordSuccess(false);
     setPasswordError(null);
     try {
-      // Simulate password change call or API call
-      await new Promise((r) => setTimeout(r, 800));
+      if (user?.email) {
+        try {
+          await authAPI.login({ email: user.email, password: data.current_password });
+        } catch {
+          throw new Error('Current password does not match account records.');
+        }
+      }
+      await authAPI.updateProfile({ password: data.new_password });
       setPasswordSuccess(true);
       resetPassword();
-    } catch {
-      setPasswordError('Failed to change password. Please verify current credentials.');
+    } catch (err: any) {
+      setPasswordError(
+        err?.message || err?.response?.data?.detail || 'Failed to change password. Please verify current credentials.'
+      );
     } finally {
       setPasswordSaving(false);
     }

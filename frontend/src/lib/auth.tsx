@@ -73,6 +73,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('beyondproof_token');
     setToken(null);
     setUser(null);
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login';
+    }
   };
 
   return (

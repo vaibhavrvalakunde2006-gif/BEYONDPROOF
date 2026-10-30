@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import {
   Network,
   Info,
@@ -27,100 +28,13 @@ export default function TrustGraphPage() {
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Default rich graph when no verifications or backend is connecting
-  const mockGraph: TrustGraphData = {
-    nodes: [
-      {
-        id: 'node-file-1',
-        node_type: 'file',
-        label: 'passport_scan_v1.pdf',
-        properties: { sha256: '9f86d081884c7d659a2feaa0c55ad015', size: '2.4 MB', mime: 'application/pdf' },
-        engine_source: 'Document Verifier',
-      },
-      {
-        id: 'node-user-1',
-        node_type: 'user',
-        label: 'john.doe@enterprise.com',
-        properties: { role: 'analyst', ip: '192.168.1.104', organization: 'CyberForensics Unit' },
-        engine_source: 'Auth Core',
-      },
-      {
-        id: 'node-verif-1',
-        node_type: 'verification',
-        label: 'VERIF-2024-8841',
-        properties: { score: 78, status: 'completed', category: 'high_risk' },
-        engine_source: 'Verification Hub',
-      },
-      {
-        id: 'node-fp-1',
-        node_type: 'fingerprint',
-        label: 'FP-SHA-992014',
-        properties: { pHash: '0xb4c3f81e72a1900d', dHash: '0x12a9d82e118944cc' },
-        engine_source: 'Source Tracker',
-      },
-      {
-        id: 'node-finding-1',
-        node_type: 'finding',
-        label: 'Font Subset Anomaly',
-        properties: { severity: 'high', code: 'DOC_FONT_TAMPER', confidence: 0.92 },
-        engine_source: 'Document Verifier',
-      },
-      {
-        id: 'node-finding-2',
-        node_type: 'finding',
-        label: 'Synthetic Portrait Halo',
-        properties: { severity: 'critical', code: 'ID_PORTRAIT_BLENDING', confidence: 0.95 },
-        engine_source: 'Identity Guardian',
-      },
-    ],
-    edges: [
-      {
-        id: 'edge-1',
-        source: 'node-user-1',
-        target: 'node-file-1',
-        relationship: 'UPLOADED_BY',
-        evidence: 'User authenticated session log',
-        engine_source: 'Ingestion Hub',
-      },
-      {
-        id: 'edge-2',
-        source: 'node-file-1',
-        target: 'node-verif-1',
-        relationship: 'VERIFIED_UNDER',
-        evidence: 'Pipeline task batch #4401',
-        engine_source: 'Verification Hub',
-      },
-      {
-        id: 'edge-3',
-        source: 'node-file-1',
-        target: 'node-fp-1',
-        relationship: 'ANCHORED_TO',
-        evidence: 'Cryptographic hash registry',
-        engine_source: 'Source Tracker',
-      },
-      {
-        id: 'edge-4',
-        source: 'node-verif-1',
-        target: 'node-finding-1',
-        relationship: 'FLAGGED_ANOMALY',
-        evidence: 'Glyph subset mismatch in trailer stream',
-        engine_source: 'Document Verifier',
-      },
-      {
-        id: 'edge-5',
-        source: 'node-verif-1',
-        target: 'node-finding-2',
-        relationship: 'DETECTED_MANIPULATION',
-        evidence: 'Facial boundary standard deviation drop',
-        engine_source: 'Identity Guardian',
-      },
-    ],
-  };
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadData() {
       try {
         setLoading(true);
+        setErrorMessage(null);
         const res = await verificationAPI.history();
         const list: VerificationRequest[] = res.data || [];
         setVerifications(list);
@@ -131,14 +45,18 @@ export default function TrustGraphPage() {
           try {
             const graphRes = await engineAPI.getGraph(firstId);
             setGraphData(graphRes.data);
-          } catch {
-            setGraphData(mockGraph);
+          } catch (gErr: any) {
+            console.error('Failed to load trust graph for session', gErr);
+            setErrorMessage(gErr?.response?.data?.detail || 'Trust graph generation in progress or unavailable for this file.');
+            setGraphData({ nodes: [], edges: [] });
           }
         } else {
-          setGraphData(mockGraph);
+          setGraphData({ nodes: [], edges: [] });
         }
-      } catch {
-        setGraphData(mockGraph);
+      } catch (err: any) {
+        console.error('Failed to load verifications for trust graph', err);
+        setErrorMessage(err?.response?.data?.detail || 'Failed to retrieve verification sessions.');
+        setGraphData({ nodes: [], edges: [] });
       } finally {
         setLoading(false);
       }
@@ -149,11 +67,14 @@ export default function TrustGraphPage() {
   const handleSelectVerification = async (id: string) => {
     setSelectedVerificationId(id);
     setSelectedNode(null);
+    setErrorMessage(null);
     try {
       const res = await engineAPI.getGraph(id);
       setGraphData(res.data);
-    } catch {
-      setGraphData(mockGraph);
+    } catch (gErr: any) {
+      console.error('Failed to load graph', gErr);
+      setErrorMessage(gErr?.response?.data?.detail || 'Failed to retrieve graph data for selected session.');
+      setGraphData({ nodes: [], edges: [] });
     }
   };
 
@@ -216,6 +137,34 @@ export default function TrustGraphPage() {
           <span>Security Finding</span>
         </div>
       </div>
+
+      {/* Error banner */}
+      {errorMessage && (
+        <div className="p-4 rounded-xl bg-amber-950/30 border border-amber-500/30 text-xs text-amber-300 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+          <div>
+            <span className="font-semibold block text-amber-200 mb-0.5">Trust Graph Notice</span>
+            <span>{errorMessage}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Empty State when zero verifications exist */}
+      {verifications.length === 0 && !loading && (
+        <div className="glass-card p-12 text-center space-y-4">
+          <Network className="w-12 h-12 text-indigo-400/60 mx-auto" />
+          <h3 className="text-base font-bold text-gray-200">No Verification Graph Generated Yet</h3>
+          <p className="text-xs text-gray-400 max-w-lg mx-auto leading-relaxed">
+            The Trust Graph dynamically connects uploaded files, user authentication sessions, cryptographic fingerprints, and multi-engine security findings into an interactive knowledge topology. Run a file verification to generate your first entity network graph.
+          </p>
+          <div className="pt-2">
+            <Link href="/verification" className="btn-primary py-2.5 px-6 text-xs font-semibold inline-flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4" />
+              <span>Launch Verification Hub</span>
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* Main Graph View & Node Detail Panel */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">

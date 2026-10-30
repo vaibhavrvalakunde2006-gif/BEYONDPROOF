@@ -25,16 +25,19 @@ export default function IdentityGuardianPage() {
   const [analyzing, setAnalyzing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<IdentityAnalysisResult | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleFileSelect = (file: File) => {
     setSelectedFile(file);
     setResult(null);
+    setErrorMessage(null);
   };
 
   const handleAnalyze = async () => {
     if (!selectedFile) return;
     setAnalyzing(true);
     setProgress(20);
+    setErrorMessage(null);
 
     try {
       // 1. Upload
@@ -45,64 +48,27 @@ export default function IdentityGuardianPage() {
       // 2. Identity Engine
       const analyzeRes = await engineAPI.analyzeIdentity({ file_id: fileId });
       setProgress(100);
-      setResult(analyzeRes.data);
+      const data = analyzeRes.data;
+      const normalized = {
+        file_id: fileId,
+        face_detected: data.face_detected,
+        face_count: data.face_count || 0,
+        structure_valid: data.structure_valid,
+        extracted_fields: data.extracted_fields || {},
+        ocr_text: data.extracted_fields || {},
+        findings: data.findings || [],
+        confidence: data.confidence,
+        status: data.status,
+      };
+      setResult(normalized);
     } catch (err: any) {
-      console.error('Identity engine API error, using comprehensive forensic mock', err);
-      setResult({
-        file_id: 'id-doc-099',
-        extracted_faces: [
-          'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="120" height="150" viewBox="0 0 120 150"><rect width="120" height="150" fill="%23111827"/><circle cx="60" cy="60" r="35" fill="%237c3aed" opacity="0.6"/><circle cx="50" cy="55" r="4" fill="%23fff"/><circle cx="70" cy="55" r="4" fill="%23fff"/><path d="M45,95 Q60,115 75,95" stroke="%23fff" stroke-width="2" fill="none"/><text x="15" y="140" fill="%2306b6d4" font-size="10" font-family="monospace">FACE CROPPED</text></svg>',
-        ],
-        ocr_text: {
-          DOCUMENT_TYPE: 'PASSPORT (P<)',
-          ISSUING_STATE: 'GBR',
-          SURNAME: 'HENDRICKS',
-          GIVEN_NAMES: 'ALEXANDER MARCUS',
-          NATIONALITY: 'BRITISH CITIZEN',
-          DATE_OF_BIRTH: '14 APR 1988',
-          SEX: 'M',
-          EXPIRY_DATE: '22 NOV 2031',
-          DOCUMENT_NUMBER: '992019482',
-          MRZ_LINE_1: 'P<GBRHENDRICKS<<ALEXANDER<MARCUS<<<<<<<<<<<',
-          MRZ_LINE_2: '9920194824GBR8804147M3111228<<<<<<<<<<<<<<02',
-        },
-        document_structure: {
-          type: 'ICAO Doc 9303 Compliant Passport',
-          mrz_valid: true,
-          hologram_detected: true,
-          barcode_matched: true,
-        },
-        consistency_checks: [
-          {
-            field: 'MRZ Checksum Digit Validation',
-            status: 'pass',
-            detail: 'Computed check digits match ISO/IEC 7501-1 modulus 10 weighting algorithms.',
-          },
-          {
-            field: 'Facial Boundary Re-Compression',
-            status: 'warn',
-            detail: 'Minor pixel smoothing around portrait border suggests potential headshot replacement.',
-          },
-          {
-            field: 'DOB vs MRZ Birthdate Alignment',
-            status: 'pass',
-            detail: 'Visual inspection zone aligns with machine-readable lines.',
-          },
-          {
-            field: 'Guilloche Security Pattern',
-            status: 'pass',
-            detail: 'Micro-text and high-frequency curved background lines remain uninterrupted.',
-          },
-        ],
-        findings: [
-          {
-            code: 'ID_PORTRAIT_BLENDING_VARIANCE',
-            severity: 'medium',
-            description: 'Subtle gradient blur around facial perimeter indicates possible photo replacement tampering.',
-            evidence: 'Edge gradient standard deviation drops from 32.1 to 11.4 within a 6px halo of portrait boundary.',
-          },
-        ],
-      });
+      console.error('Identity engine API error', err);
+      const msg =
+        err?.response?.data?.detail ||
+        err?.response?.data?.message ||
+        'Identity analysis failed. Please verify the file is an image or identity document.';
+      setErrorMessage(typeof msg === 'string' ? msg : JSON.stringify(msg));
+      setResult(null);
     } finally {
       setAnalyzing(false);
     }
@@ -119,6 +85,16 @@ export default function IdentityGuardianPage() {
           Biometric face extraction, ICAO 9303 MRZ verification, synthetic face detection, and ID document forensics.
         </p>
       </div>
+
+      {errorMessage && (
+        <div className="p-4 rounded-xl bg-red-950/40 border border-red-500/30 flex items-start gap-3 text-sm text-red-300">
+          <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="font-semibold text-red-200">Identity Analysis Error</p>
+            <p className="mt-0.5">{errorMessage}</p>
+          </div>
+        </div>
+      )}
 
       {/* Upload Zone */}
       <div className="glass-card p-6">
@@ -168,23 +144,31 @@ export default function IdentityGuardianPage() {
             <div className="glass-card p-6 flex flex-col items-center justify-center text-center">
               <h3 className="text-xs uppercase tracking-wider font-semibold text-gray-400 mb-4 flex items-center gap-1.5">
                 <UserCheck className="w-4 h-4 text-violet-400" />
-                <span>Extracted Biometric Portrait</span>
+                <span>Biometric Portrait Detection</span>
               </h3>
 
-              <div className="w-32 h-40 rounded-xl bg-gray-950 border-2 border-violet-500/40 overflow-hidden flex items-center justify-center mb-3 shadow-lg shadow-violet-500/10">
-                {result.extracted_faces && result.extracted_faces[0] ? (
-                  <img
-                    src={result.extracted_faces[0]}
-                    alt="Extracted Portrait"
-                    className="w-full h-full object-cover"
-                  />
+              <div className="w-32 h-40 rounded-xl bg-gray-950 border-2 border-violet-500/40 overflow-hidden flex flex-col items-center justify-center mb-3 shadow-lg shadow-violet-500/10">
+                {result.face_detected ? (
+                  <div className="text-center p-3">
+                    <UserCheck className="w-12 h-12 text-emerald-400 mx-auto mb-2" />
+                    <span className="text-xs font-mono font-bold text-gray-200">Face Detected</span>
+                  </div>
                 ) : (
-                  <UserCheck className="w-12 h-12 text-gray-600" />
+                  <div className="text-center p-3">
+                    <UserCheck className="w-12 h-12 text-gray-600 mx-auto mb-2" />
+                    <span className="text-[11px] font-mono text-gray-500">No Portrait Located</span>
+                  </div>
                 )}
               </div>
 
-              <span className="cyber-badge bg-emerald-500/10 text-emerald-400 border-emerald-500/20">
-                Liveness: Verified
+              <span
+                className={`cyber-badge ${
+                  result.face_detected
+                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                    : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                }`}
+              >
+                {result.face_detected ? `${result.face_count} Face(s) Found` : 'No Faces Detected'}
               </span>
             </div>
 
@@ -196,39 +180,50 @@ export default function IdentityGuardianPage() {
                     <CreditCard className="w-5 h-5 text-cyan-400" />
                     <span>Document Architecture & Security Features</span>
                   </h3>
-                  <Badge variant={result.document_structure?.mrz_valid ? 'success' : 'danger'}>
-                    {result.document_structure?.type || 'ID Document'}
+                  <Badge variant={result.structure_valid ? 'success' : 'warning'}>
+                    {result.structure_valid ? 'Standard ID Geometry' : 'Non-Standard Geometry'}
                   </Badge>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 my-4">
                   <div className="p-3 rounded-lg bg-gray-900 border border-gray-800">
-                    <span className="text-gray-400 text-xs block">MRZ Checksum:</span>
+                    <span className="text-gray-400 text-xs block">Biometric Faces:</span>
                     <span
                       className={`font-semibold text-sm ${
-                        result.document_structure?.mrz_valid ? 'text-emerald-400' : 'text-red-400'
+                        result.face_detected ? 'text-emerald-400' : 'text-amber-400'
                       }`}
                     >
-                      {result.document_structure?.mrz_valid ? 'Valid Checksum' : 'Invalid'}
+                      {result.face_detected ? `${result.face_count} Detected` : 'None'}
                     </span>
                   </div>
                   <div className="p-3 rounded-lg bg-gray-900 border border-gray-800">
-                    <span className="text-gray-400 text-xs block">Hologram Pattern:</span>
+                    <span className="text-gray-400 text-xs block">Physical Aspect Ratio:</span>
+                    <span className={`font-semibold text-sm ${result.structure_valid ? 'text-emerald-400' : 'text-amber-400'}`}>
+                      {result.structure_valid ? 'ISO ID-1 / ID-3' : 'Custom Ratio'}
+                    </span>
+                  </div>
+                  <div className="p-3 rounded-lg bg-gray-900 border border-gray-800">
+                    <span className="text-gray-400 text-xs block">Extracted Fields:</span>
                     <span className="font-semibold text-sm text-cyan-400">
-                      {result.document_structure?.hologram_detected ? 'Detected & Intact' : 'Not Found'}
-                    </span>
-                  </div>
-                  <div className="p-3 rounded-lg bg-gray-900 border border-gray-800">
-                    <span className="text-gray-400 text-xs block">Barcode Cross-Check:</span>
-                    <span className="font-semibold text-sm text-violet-400">
-                      {result.document_structure?.barcode_matched ? 'Matched' : 'N/A'}
+                      {Object.keys(result.extracted_fields || {}).length} Fields
                     </span>
                   </div>
                 </div>
               </div>
 
               <div className="pt-3 border-t border-gray-800 text-xs text-gray-400">
-                Tamper Status: <span className="text-amber-400 font-semibold">1 Minor Advisory Finding</span>
+                Tamper Status:{' '}
+                <span
+                  className={
+                    result.findings?.length > 0
+                      ? 'text-amber-400 font-semibold'
+                      : 'text-emerald-400 font-semibold'
+                  }
+                >
+                  {result.findings?.length > 0
+                    ? `${result.findings.length} Forensic Finding(s) Logged`
+                    : 'Clean — No Anomaly Flags'}
+                </span>
               </div>
             </div>
           </div>

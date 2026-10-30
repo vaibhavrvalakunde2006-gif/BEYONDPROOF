@@ -72,6 +72,7 @@ async def save_upload(
         file_type=category,
     )
     db.add(file_record)
+    await db.flush()
 
     # Record audit log
     audit = AuditLog(

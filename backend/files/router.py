@@ -51,6 +51,7 @@ async def upload_file(
     return FileResponse.model_validate(file_record)
 
 
+@router.get("", response_model=List[FileResponse])
 @router.get("/", response_model=List[FileResponse])
 async def get_user_files(
     skip: int = 0,

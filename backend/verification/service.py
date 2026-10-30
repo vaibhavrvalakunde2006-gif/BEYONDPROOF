@@ -121,28 +121,72 @@ async def run_verification(verification_id: str, db: AsyncSession) -> Verificati
             progress_pct = int((current_step / total_steps) * 90)
             await manager.send_progress(verification_id, engine_name, "running", progress_pct)
 
-            if engine_name in ["media_image", "image"]:
-                await full_image_analysis(file_path, file_record.id, verification_id, db)
-            elif engine_name in ["media_video", "video"]:
-                await full_video_analysis(file_path, file_record.id, verification_id, db)
-            elif engine_name in ["media_audio", "audio"]:
-                await full_audio_analysis(file_path, file_record.id, verification_id, db)
-            elif engine_name in ["document", "pdf"]:
-                await full_document_analysis(file_path, file_record.id, verification_id, db)
-            elif engine_name == "identity":
-                await full_identity_analysis(file_path, file_record.id, verification_id, db)
-            elif engine_name == "source":
-                await full_source_analysis(file_path, file_record.id, verification_id, db)
+            # Skip post-processors handled after loop
+            if engine_name in ["trust_graph", "risk_analyzer", "verification_hub"]:
+                continue
+
+            try:
+                if engine_name in ["media_image", "image"] or (engine_name == "media" and file_record.file_type == "image"):
+                    await full_image_analysis(file_path, file_record.id, verification_id, db)
+                elif engine_name in ["media_video", "video"] or (engine_name == "media" and file_record.file_type == "video"):
+                    await full_video_analysis(file_path, file_record.id, verification_id, db)
+                elif engine_name in ["media_audio", "audio"] or (engine_name == "media" and file_record.file_type == "audio"):
+                    await full_audio_analysis(file_path, file_record.id, verification_id, db)
+                elif engine_name in ["document", "pdf"]:
+                    await full_document_analysis(file_path, file_record.id, verification_id, db)
+                elif engine_name == "identity":
+                    await full_identity_analysis(file_path, file_record.id, verification_id, db)
+                elif engine_name == "source":
+                    await full_source_analysis(file_path, file_record.id, verification_id, db)
+                elif engine_name == "media":
+                    # Default media fallback based on MIME/extension
+                    if file_record.file_type == "video":
+                        await full_video_analysis(file_path, file_record.id, verification_id, db)
+                    elif file_record.file_type == "audio":
+                        await full_audio_analysis(file_path, file_record.id, verification_id, db)
+                    else:
+                        await full_image_analysis(file_path, file_record.id, verification_id, db)
+            except Exception as eng_err:
+                print(f"Warning: Engine '{engine_name}' encountered an error: {eng_err}")
+                # Ensure an EngineResult is recorded as failed
+                res_q = await db.execute(
+                    select(EngineResult).where(
+                        EngineResult.verification_id == verification_id,
+                        EngineResult.engine_name == engine_name,
+                    )
+                )
+                er = res_q.scalar_one_or_none()
+                if not er:
+                    er = EngineResult(
+                        verification_id=verification_id,
+                        engine_name=engine_name,
+                        status="failed",
+                        error_message=str(eng_err),
+                        started_at=datetime.now(timezone.utc),
+                        completed_at=datetime.now(timezone.utc),
+                    )
+                    db.add(er)
+                else:
+                    er.status = "failed"
+                    er.error_message = str(eng_err)
+                    er.completed_at = datetime.now(timezone.utc)
+                await db.commit()
 
         # Build Trust Graph
         current_step += 1
         await manager.send_progress(verification_id, "trust_graph", "building", 92)
-        await build_verification_graph(verification_id, db)
+        try:
+            await build_verification_graph(verification_id, db)
+        except Exception as g_err:
+            print(f"Warning: Trust Graph build warning: {g_err}")
 
         # Run AI Risk Analyzer
         current_step += 1
         await manager.send_progress(verification_id, "risk_analyzer", "evaluating", 97)
-        await full_risk_analysis(verification_id, db)
+        try:
+            await full_risk_analysis(verification_id, db)
+        except Exception as r_err:
+            print(f"Warning: Risk Analyzer warning: {r_err}")
 
         verification.status = "completed"
         verification.completed_at = datetime.now(timezone.utc)
@@ -154,7 +198,8 @@ async def run_verification(verification_id: str, db: AsyncSession) -> Verificati
         verification.completed_at = datetime.now(timezone.utc)
         await db.commit()
         await manager.send_progress(verification_id, "error", f"failed: {str(e)}", 100)
-        raise e
+        # Return cleanly rather than crashing the HTTP request
+        return verification
 
     await db.refresh(verification)
     return verification
@@ -237,19 +282,16 @@ async def get_verification(
 
 
 async def get_verification_history(
-    user_id: str,
+    user_id: Optional[str],
     db: AsyncSession,
     skip: int = 0,
     limit: int = 50,
 ) -> List[VerificationResponse]:
-    """Retrieve chronological history of past verifications initiated by the user."""
-    query = (
-        select(VerificationRequest)
-        .where(VerificationRequest.user_id == user_id)
-        .order_by(VerificationRequest.created_at.desc())
-        .offset(skip)
-        .limit(limit)
-    )
+    """Retrieve chronological history of past verifications initiated by the user (or all if admin)."""
+    query = select(VerificationRequest)
+    if user_id:
+        query = query.where(VerificationRequest.user_id == user_id)
+    query = query.order_by(VerificationRequest.created_at.desc()).offset(skip).limit(limit)
     result = await db.execute(query)
     verifications = result.scalars().all()
     return [VerificationResponse.model_validate(v) for v in verifications]

@@ -50,6 +50,59 @@ async def create_and_run_verification(
     )
 
 
+@router.get("/dashboard/stats")
+async def get_dashboard_summary(
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Retrieve operational telemetry and risk distribution for the active user dashboard."""
+    from database.models import VerificationRequest, UploadedFile, RiskAssessment
+    from sqlalchemy import select, func
+
+    verif_query = select(func.count(VerificationRequest.id))
+    files_query = select(func.count(UploadedFile.id))
+    if current_user.role != "admin":
+        verif_query = verif_query.where(VerificationRequest.user_id == current_user.id)
+        files_query = files_query.where(UploadedFile.user_id == current_user.id)
+
+    verif_res = await db.execute(verif_query)
+    total_verifications = verif_res.scalar() or 0
+
+    files_res = await db.execute(files_query)
+    total_files = files_res.scalar() or 0
+
+    # Risk distribution
+    risk_q = (
+        select(RiskAssessment.risk_category, func.count(RiskAssessment.id))
+        .join(VerificationRequest, RiskAssessment.verification_id == VerificationRequest.id)
+    )
+    if current_user.role != "admin":
+        risk_q = risk_q.where(VerificationRequest.user_id == current_user.id)
+    risk_q = risk_q.group_by(RiskAssessment.risk_category)
+    risk_rows = (await db.execute(risk_q)).all()
+
+    risk_dist = {"low_risk": 0, "suspicious": 0, "high_risk": 0, "unverified": 0}
+    for row in risk_rows:
+        if row[0] in risk_dist:
+            risk_dist[row[0]] = row[1]
+
+    # Recent verifications
+    recent = await get_verification_history(
+        user_id=current_user.id if current_user.role != "admin" else None,
+        db=db,
+        skip=0,
+        limit=10,
+    )
+
+    return {
+        "total_verifications": total_verifications,
+        "total_files": total_files,
+        "risk_distribution": risk_dist,
+        "recent_verifications": [VerificationResponse.model_validate(r) for r in recent],
+        "engines_active": 7,
+    }
+
+
 @router.get("/history", response_model=List[VerificationResponse])
 async def list_verification_history(
     skip: int = 0,
