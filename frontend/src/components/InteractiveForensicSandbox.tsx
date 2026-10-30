@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { Terminal, ShieldAlert, CheckCircle, ArrowRight, Play, Copy, RefreshCw, Cpu, Sparkles } from 'lucide-react';
+import { soundManager } from '@/lib/soundFx';
 
 interface Scenario {
   id: string;
@@ -98,6 +99,7 @@ export function InteractiveForensicSandbox() {
   const [copied, setCopied] = useState(false);
 
   const handleCopyHash = () => {
+    soundManager.playBlip();
     navigator.clipboard.writeText(activeScenario.sha256);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -140,7 +142,10 @@ export function InteractiveForensicSandbox() {
           return (
             <button
               key={sc.id}
-              onClick={() => setActiveScenario(sc)}
+              onClick={() => {
+                soundManager.playLaserScan();
+                setActiveScenario(sc);
+              }}
               className={`p-3.5 rounded-xl border text-left transition-all relative overflow-hidden ${
                 isSelected
                   ? 'border-cyan-400/80 bg-gray-900 shadow-lg shadow-cyan-950/60'

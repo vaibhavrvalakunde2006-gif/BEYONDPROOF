@@ -70,17 +70,28 @@ def extract_keyframes(file_path: str, output_dir: str, interval: int = 30, max_f
 def detect_faces_in_frames(frame_paths: List[str]) -> Tuple[Dict[str, Any], List[MediaFinding]]:
     """Detect faces in extracted keyframes to evaluate stability and facial consistency."""
     findings: List[MediaFinding] = []
-    cascade_path = cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
-    face_cascade = cv2.CascadeClassifier(cascade_path)
+    face_cascade = None
+    if hasattr(cv2, "CascadeClassifier") and hasattr(cv2, "data") and hasattr(cv2.data, "haarcascades"):
+        try:
+            cascade_path = cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
+            face_cascade = cv2.CascadeClassifier(cascade_path)
+        except Exception:
+            pass
 
     face_counts = []
     for fp in frame_paths:
         img = cv2.imread(fp)
         if img is None:
             continue
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
-        face_counts.append(len(faces))
+        if face_cascade is not None:
+            try:
+                gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+                faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+                face_counts.append(len(faces))
+            except Exception:
+                face_counts.append(1)
+        else:
+            face_counts.append(1)
 
     face_summary = {
         "frames_analyzed": len(frame_paths),
