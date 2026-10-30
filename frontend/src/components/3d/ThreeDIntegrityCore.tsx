@@ -25,13 +25,13 @@ export default function ThreeDIntegrityCore() {
   const [activeRotSpeed, setActiveRotSpeed] = useState(1);
 
   const enginesRef = useRef<EngineSatellite[]>([
-    { id: 'identity', name: 'Identity Guardian', tag: 'BIOMETRIC & MRZ', route: '/identity', color: 0x00e5ff, status: 'OPTIMAL', angle: 0, radius: 4.8, speed: 0.4 },
-    { id: 'document', name: 'Document Verifier', tag: 'PDF & METADATA', route: '/document', color: 0x10b981, status: 'OPTIMAL', angle: (Math.PI * 2 * 1) / 7, radius: 4.8, speed: 0.35 },
-    { id: 'media', name: 'Media Truth', tag: 'AFTERIMAGE ELA', route: '/media', color: 0x8b5cf6, status: 'ACTIVE', angle: (Math.PI * 2 * 2) / 7, radius: 4.8, speed: 0.45 },
-    { id: 'source', name: 'Source Tracker', tag: 'pHash & PROVENANCE', route: '/source', color: 0xffb547, status: 'OPTIMAL', angle: (Math.PI * 2 * 3) / 7, radius: 4.8, speed: 0.38 },
-    { id: 'trust-graph', name: 'Trust Graph', tag: 'SYNDICATE NETWORK', route: '/trust-graph', color: 0x38bdf8, status: 'OPTIMAL', angle: (Math.PI * 2 * 4) / 7, radius: 4.8, speed: 0.42 },
-    { id: 'risk', name: 'Risk Analyzer', tag: 'BAYESIAN THREAT', route: '/risk', color: 0xff7a24, status: 'OPTIMAL', angle: (Math.PI * 2 * 5) / 7, radius: 4.8, speed: 0.32 },
-    { id: 'verification', name: 'Verification Hub', tag: 'MASTER DOSSIER', route: '/verification', color: 0x06b6d4, status: 'OPTIMAL', angle: (Math.PI * 2 * 6) / 7, radius: 4.8, speed: 0.4 },
+    { id: 'identity', name: 'Identity Guardian', tag: 'BIOMETRIC & MRZ', route: '/app/engines/identity', color: 0x00e5ff, status: 'OPTIMAL', angle: 0, radius: 4.8, speed: 0.4 },
+    { id: 'document', name: 'Document Verifier', tag: 'PDF & METADATA', route: '/app/engines/document', color: 0x10b981, status: 'OPTIMAL', angle: (Math.PI * 2 * 1) / 7, radius: 4.8, speed: 0.35 },
+    { id: 'media', name: 'Media Truth', tag: 'AFTERIMAGE ELA', route: '/app/engines/media', color: 0x8b5cf6, status: 'ACTIVE', angle: (Math.PI * 2 * 2) / 7, radius: 4.8, speed: 0.45 },
+    { id: 'source', name: 'Source Tracker', tag: 'pHash & PROVENANCE', route: '/app/engines/source', color: 0xffb547, status: 'OPTIMAL', angle: (Math.PI * 2 * 3) / 7, radius: 4.8, speed: 0.38 },
+    { id: 'trust-graph', name: 'Trust Graph', tag: 'SYNDICATE NETWORK', route: '/app/trust-graph', color: 0x38bdf8, status: 'OPTIMAL', angle: (Math.PI * 2 * 4) / 7, radius: 4.8, speed: 0.42 },
+    { id: 'risk', name: 'Risk Analyzer', tag: 'BAYESIAN THREAT', route: '/app/engines/risk', color: 0xff7a24, status: 'OPTIMAL', angle: (Math.PI * 2 * 5) / 7, radius: 4.8, speed: 0.32 },
+    { id: 'verification', name: 'Investigation History', tag: 'MASTER DOSSIER', route: '/app/history', color: 0x06b6d4, status: 'OPTIMAL', angle: (Math.PI * 2 * 6) / 7, radius: 4.8, speed: 0.4 },
   ]);
 
   useEffect(() => {
