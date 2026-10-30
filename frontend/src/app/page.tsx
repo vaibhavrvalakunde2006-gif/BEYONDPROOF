@@ -21,6 +21,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { soundManager } from "@/lib/soundFx";
+import ThreeDCard from "@/components/3d/ThreeDCard";
 
 // Dynamically import the 3D Holodeck Hero with SSR disabled for WebGL
 const ForensicHolodeckHero = dynamic(
@@ -220,31 +221,13 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {engines.map((eng) => {
             const Icon = eng.icon;
-            const isHovered = hoveredEngine === eng.id;
             return (
-              <Link
+              <ThreeDCard
                 key={eng.id}
                 href={eng.href}
-                onMouseEnter={() => {
-                  setHoveredEngine(eng.id);
-                  soundManager.playBlip();
-                }}
-                onMouseLeave={() => setHoveredEngine(null)}
-                className={`relative group p-6 rounded-2xl border transition-all duration-300 flex flex-col justify-between overflow-hidden bg-gradient-to-b from-[#0e141f] to-[#080d14] ${
-                  isHovered
-                    ? "border-cyan-400/80 shadow-[0_0_35px_rgba(0,229,255,0.2)] -translate-y-1.5"
-                    : "border-white/[0.08] hover:border-white/20"
-                }`}
+                glowColor={eng.color}
+                className="p-6 bg-gradient-to-b from-[#0e141f] to-[#080d14]"
               >
-                {/* Glow accent corner */}
-                <div
-                  className="absolute -top-12 -right-12 w-28 h-28 rounded-full blur-2xl transition-opacity duration-300 pointer-events-none"
-                  style={{
-                    backgroundColor: eng.color,
-                    opacity: isHovered ? 0.35 : 0.08,
-                  }}
-                />
-
                 <div>
                   <div className="flex items-center justify-between text-xs font-mono mb-6">
                     <span className="text-gray-500 font-bold">{eng.num} / CORE</span>
@@ -280,7 +263,7 @@ export default function Home() {
                   <span>LAUNCH 3D ENGINE</span>
                   <ArrowUpRight className="w-4 h-4 transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                 </div>
-              </Link>
+              </ThreeDCard>
             );
           })}
         </div>
@@ -503,10 +486,10 @@ export default function Home() {
           <span>// Beyond Trust. Beyond Doubt.</span>
         </div>
         <div>
-          <span>BUILT BY BBC ? BUILT BEYOND CODE</span>
+          <span>BUILT BY BBC — BUILT BEYOND CODE</span>
         </div>
         <div>
-          <span>? 2026 BEYONDPROOF INC. ALL RIGHTS RESERVED.</span>
+          <span>&copy; 2026 BEYONDPROOF INC. ALL RIGHTS RESERVED.</span>
         </div>
       </footer>
     </main>

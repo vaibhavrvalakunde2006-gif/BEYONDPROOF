@@ -1,119 +1,116 @@
 'use client';
 
 import React, { useRef, useState } from 'react';
-import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import Link from 'next/link';
+import { soundManager } from '@/lib/soundFx';
 
 interface ThreeDCardProps {
   children: React.ReactNode;
   className?: string;
   glowColor?: string;
+  maxTilt?: number;
+  href?: string;
   onClick?: () => void;
 }
 
-export function ThreeDCard({
+export default function ThreeDCard({
   children,
   className = '',
-  glowColor = 'rgba(0, 229, 255, 0.3)',
+  glowColor = '#00e5ff',
+  maxTilt = 12,
+  href,
   onClick,
 }: ThreeDCardProps) {
-  const cardRef = useRef<HTMLDivElement | null>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const [spotlight, setSpotlight] = useState({ x: 0, y: 0, opacity: 0 });
   const [isHovered, setIsHovered] = useState(false);
-
-  // Motion values for smooth 3D tilt
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-
-  const mouseXSpring = useSpring(x, { stiffness: 220, damping: 20 });
-  const mouseYSpring = useSpring(y, { stiffness: 220, damping: 20 });
-
-  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ['10deg', '-10deg']);
-  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ['-10deg', '10deg']);
-
-  // Dynamic light glare position
-  const glareX = useTransform(mouseXSpring, [-0.5, 0.5], ['0%', '100%']);
-  const glareY = useTransform(mouseYSpring, [-0.5, 0.5], ['0%', '100%']);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!cardRef.current) return;
     const rect = cardRef.current.getBoundingClientRect();
-    const width = rect.width;
-    const height = rect.height;
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
 
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
+    const normX = (x / rect.width) - 0.5;
+    const normY = (y / rect.height) - 0.5;
 
-    const xPct = mouseX / width - 0.5;
-    const yPct = mouseY / height - 0.5;
+    setTilt({
+      x: -normY * maxTilt * 2,
+      y: normX * maxTilt * 2,
+    });
 
-    x.set(xPct);
-    y.set(yPct);
+    setSpotlight({
+      x,
+      y,
+      opacity: 0.45,
+    });
   };
 
   const handleMouseEnter = () => {
     setIsHovered(true);
+    soundManager.playBlip();
   };
 
   const handleMouseLeave = () => {
     setIsHovered(false);
-    x.set(0);
-    y.set(0);
+    setTilt({ x: 0, y: 0 });
+    setSpotlight((prev) => ({ ...prev, opacity: 0 }));
   };
 
-  return (
+  const content = (
     <div
-      style={{ perspective: 1200 }}
-      className="relative flex w-full"
-      tabIndex={0}
-      onFocus={() => setIsHovered(true)}
-      onBlur={() => {
-        setIsHovered(false);
-        x.set(0);
-        y.set(0);
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onClick={onClick}
+      style={{
+        transform: isHovered
+          ? `perspective(1000px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) scale3d(1.025, 1.025, 1.025)`
+          : 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)',
+        transition: isHovered ? 'transform 0.1s ease-out' : 'transform 0.4s ease-out',
+        transformStyle: 'preserve-3d',
       }}
+      className={`relative rounded-2xl overflow-hidden cursor-pointer select-none border transition-colors duration-300 ${
+        isHovered
+          ? 'border-cyan-400/80 shadow-[0_20px_45px_rgba(0,229,255,0.22)]'
+          : 'border-white/[0.08] hover:border-white/20'
+      } ${className}`}
     >
-      <motion.div
-        ref={cardRef}
-        onClick={onClick}
-        onMouseMove={handleMouseMove}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
+      {/* Specular Radial Spotlight Follower */}
+      <div
+        className="pointer-events-none absolute inset-0 transition-opacity duration-300 z-10"
         style={{
-          rotateX,
-          rotateY,
-          transformStyle: 'preserve-3d',
+          opacity: spotlight.opacity,
+          background: `radial-gradient(350px circle at ${spotlight.x}px ${spotlight.y}px, ${glowColor}33, transparent 75%)`,
         }}
-        animate={{
-          scale: isHovered ? 1.02 : 1,
+      />
+
+      {/* Cyber Grid Texture Overlay */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.03] z-0"
+        style={{
+          backgroundImage:
+            'linear-gradient(rgba(255,255,255,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.15) 1px, transparent 1px)',
+          backgroundSize: '24px 24px',
         }}
-        transition={{ duration: 0.2 }}
-        className={`relative w-full rounded-2xl bg-[#0B0D12]/80 backdrop-blur-xl border border-gray-800/80 p-6 overflow-hidden transition-colors duration-300 ${
-          isHovered ? 'border-cyan-500/50' : ''
-        } ${className}`}
-      >
-        {/* Dynamic Glare Reflection */}
-        <motion.div
-          className="pointer-events-none absolute -inset-px rounded-2xl opacity-0 transition-opacity duration-300"
-          style={{
-            opacity: isHovered ? 0.25 : 0,
-            background: `radial-gradient(circle at ${glareX} ${glareY}, ${glowColor}, transparent 60%)`,
-          }}
-        />
+      />
 
-        {/* Luminous Animated Corner Rim */}
-        {isHovered && (
-          <div
-            className="pointer-events-none absolute inset-0 rounded-2xl transition-opacity duration-300"
-            style={{
-              boxShadow: `inset 0 0 15px ${glowColor}, 0 0 20px ${glowColor}`,
-            }}
-          />
-        )}
-
-        {/* Content with Depth */}
-        <div style={{ transform: 'translateZ(30px)' }} className="relative z-10">
-          {children}
-        </div>
-      </motion.div>
+      {/* Card Body with 3D Depth Layer */}
+      <div className="relative z-20 h-full flex flex-col justify-between" style={{ transform: 'translateZ(20px)' }}>
+        {children}
+      </div>
     </div>
   );
+
+  if (href) {
+    return (
+      <Link href={href} className="block h-full">
+        {content}
+      </Link>
+    );
+  }
+
+  return content;
 }

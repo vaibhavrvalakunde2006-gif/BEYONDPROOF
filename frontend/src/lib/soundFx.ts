@@ -170,6 +170,10 @@ class SoundEffectsManager {
     } catch {}
   }
 
+  public playSuccessChime() {
+    this.playSuccess();
+  }
+
   // 5. Threat Alarm / Tamper Isolated Buzz
   public playAlertBuzz() {
     if (this.muted) return;

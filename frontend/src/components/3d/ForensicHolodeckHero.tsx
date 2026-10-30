@@ -25,10 +25,15 @@ import {
   RotateCcw,
   Sparkles,
   Lock,
+  Maximize2,
+  Minimize2,
+  Compass,
+  Video,
 } from 'lucide-react';
 import { soundManager } from '@/lib/soundFx';
 
 type HolodeckMode = 'core' | 'biometric' | 'ela' | 'provenance' | 'threat';
+type CameraPreset = 'orbit' | 'top' | 'macro' | 'cinematic';
 
 interface SampleAttack {
   id: string;
@@ -58,9 +63,25 @@ export default function ForensicHolodeckHero({
   const [mouseCoords, setMouseCoords] = useState({ x: 382.4, y: 194.2 });
   const [analyzingFile, setAnalyzingFile] = useState(false);
   const [inspectionVerdict, setInspectionVerdict] = useState<any | null>(null);
+  const [cameraPreset, setCameraPreset] = useState<CameraPreset>('orbit');
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const activeModeRef = useRef<HolodeckMode>(activeMode);
   activeModeRef.current = activeMode;
+
+  const cameraPresetRef = useRef<CameraPreset>(cameraPreset);
+  cameraPresetRef.current = cameraPreset;
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isFullscreen) {
+        setIsFullscreen(false);
+        setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isFullscreen]);
 
   const sampleAttacks: SampleAttack[] = [
     {
@@ -135,6 +156,20 @@ export default function ForensicHolodeckHero({
     soundManager.playModeSwitch();
   };
 
+  const handleCameraChange = (preset: CameraPreset) => {
+    setCameraPreset(preset);
+    soundManager.playLaserScan();
+  };
+
+  const toggleFullscreen = () => {
+    const next = !isFullscreen;
+    setIsFullscreen(next);
+    soundManager.playModeSwitch();
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 60);
+  };
+
   // Toggle Mute
   const handleToggleMute = () => {
     const next = soundManager.toggleMute();
@@ -178,8 +213,8 @@ export default function ForensicHolodeckHero({
 
     // 1. Setup Scene & Camera
     const scene = new THREE.Scene();
-    const width = container.clientWidth || 1000;
-    const height = 580;
+    let width = container.clientWidth || 1000;
+    let height = container.clientHeight || 580;
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
     camera.position.set(0, 3, 11);
     camera.lookAt(0, 0, 0);
@@ -386,10 +421,12 @@ export default function ForensicHolodeckHero({
     const threatMesh = new THREE.Mesh(threatGeo, threatMat);
     threatGroup.add(threatMesh);
 
-    // 6. Interactive Drag & Mouse Parallax
+    // 6. Interactive Drag, Mouse Wheel Zoom & Mouse Parallax
     let isDragging = false;
     let prevMouseX = 0;
     let prevMouseY = 0;
+    let normMouseX = 0;
+    let normMouseY = 0;
 
     const onPointerDown = (e: MouseEvent) => {
       isDragging = true;
@@ -398,6 +435,10 @@ export default function ForensicHolodeckHero({
     };
 
     const onPointerMove = (e: MouseEvent) => {
+      const rect = container.getBoundingClientRect();
+      normMouseX = ((e.clientX - rect.left) / width) * 2 - 1;
+      normMouseY = -(((e.clientY - rect.top) / height) * 2 - 1);
+
       setMouseCoords({
         x: parseFloat((e.clientX * 0.5).toFixed(1)),
         y: parseFloat((e.clientY * 0.5).toFixed(1)),
@@ -421,18 +462,25 @@ export default function ForensicHolodeckHero({
       isDragging = false;
     };
 
+    const onWheel = (e: WheelEvent) => {
+      camera.position.z += e.deltaY * 0.007;
+      camera.position.z = Math.max(6.0, Math.min(22.0, camera.position.z));
+    };
+
     const dom = renderer.domElement;
     dom.addEventListener('mousedown', onPointerDown);
     window.addEventListener('mousemove', onPointerMove);
     window.addEventListener('mouseup', onPointerUp);
+    dom.addEventListener('wheel', onWheel, { passive: true });
 
     // Resize
     const handleResize = () => {
       if (!container) return;
-      const w = container.clientWidth;
-      camera.aspect = w / height;
+      width = container.clientWidth;
+      height = container.clientHeight || 700;
+      camera.aspect = width / height;
       camera.updateProjectionMatrix();
-      renderer.setSize(w, height);
+      renderer.setSize(width, height);
     };
     window.addEventListener('resize', handleResize);
 
@@ -444,6 +492,31 @@ export default function ForensicHolodeckHero({
       animId = requestAnimationFrame(animate);
       const delta = clock.getDelta();
       const elapsed = clock.getElapsedTime();
+
+      // Dynamic camera parallax with camera presets
+      const preset = cameraPresetRef.current;
+      let targetX = normMouseX * 2.2;
+      let targetY = normMouseY * 1.2 + 2.5;
+      let targetZ = 11;
+
+      if (preset === 'top') {
+        targetX = normMouseX * 1.5;
+        targetY = 13.5;
+        targetZ = normMouseY * 1.5 + 0.1;
+      } else if (preset === 'macro') {
+        targetX = normMouseX * 0.9;
+        targetY = normMouseY * 0.6 + 0.6;
+        targetZ = 4.8;
+      } else if (preset === 'cinematic') {
+        targetX = Math.sin(elapsed * 0.35) * 8.5;
+        targetY = 3.6 + Math.cos(elapsed * 0.25) * 1.6;
+        targetZ = Math.cos(elapsed * 0.35) * 8.5;
+      }
+
+      camera.position.x += (targetX - camera.position.x) * 0.05;
+      camera.position.y += (targetY - camera.position.y) * 0.05;
+      camera.position.z += (targetZ - camera.position.z) * 0.05;
+      camera.lookAt(0, 0, 0);
 
       // Mode toggling visibility
       const curMode = activeModeRef.current;
@@ -593,19 +666,77 @@ export default function ForensicHolodeckHero({
       </div>
 
       {/* 3D Holodeck Canvas Viewport with Corner Crosshairs */}
-      <div className="relative w-full max-w-5xl h-[520px] mx-auto flex items-center justify-center select-none overflow-hidden my-2">
-        {/* Tactical Crosshair Corner Reticles */}
-        <div className="absolute top-4 left-6 pointer-events-none text-cyan-400 font-mono text-xs">
-          [+] RETICLE: 3D_FORENSIC_TRACKER
+      <div
+        className={
+          isFullscreen
+            ? 'fixed inset-0 z-50 bg-[#03060a]/98 backdrop-blur-3xl flex flex-col justify-between p-6 select-none'
+            : 'relative w-full max-w-7xl h-[660px] lg:h-[740px] mx-auto flex items-center justify-center select-none overflow-hidden my-4 rounded-3xl border border-cyan-500/30 bg-gradient-to-b from-[#0a121e]/90 via-[#060a12]/95 to-black shadow-[0_0_80px_rgba(0,229,255,0.18)]'
+        }
+      >
+        {/* Floating Top Viewport Controls: Camera Presets & Maximize Button */}
+        <div className="absolute top-4 left-6 right-6 z-30 flex items-center justify-between pointer-events-auto">
+          {/* Left: Reticle or Fullscreen Badge */}
+          <div className="flex items-center gap-3">
+            <span className="text-cyan-400 font-mono text-xs flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+              <span>{isFullscreen ? '[CYBERDECK FULLSCREEN ENGAGED]' : '[+] RETICLE: 3D_FORENSIC_TRACKER'}</span>
+            </span>
+          </div>
+
+          {/* Center: Camera Presets Switcher */}
+          <div className="hidden sm:flex items-center gap-1.5 p-1 rounded-xl bg-black/80 border border-white/10 backdrop-blur-md text-[11px] font-mono text-gray-400">
+            <span className="px-2 text-gray-500 flex items-center gap-1">
+              <Compass className="w-3 h-3 text-cyan-400" />
+              <span>CAM:</span>
+            </span>
+            {[
+              { id: 'orbit', label: '360° ORBIT' },
+              { id: 'top', label: 'TOP NADIR' },
+              { id: 'macro', label: 'MACRO' },
+              { id: 'cinematic', label: 'CINEMATIC' },
+            ].map((cam) => (
+              <button
+                key={cam.id}
+                onClick={() => handleCameraChange(cam.id as CameraPreset)}
+                className={`px-2.5 py-1 rounded-lg transition-all ${
+                  cameraPreset === cam.id
+                    ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/60 font-bold'
+                    : 'hover:text-white'
+                }`}
+              >
+                {cam.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Right: Maximize Cyberdeck Toggle */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={toggleFullscreen}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-cyan-950/70 border border-cyan-400/50 text-cyan-300 hover:bg-cyan-500/20 hover:border-cyan-400 text-xs font-mono font-bold transition-all shadow-[0_0_15px_rgba(0,229,255,0.2)]"
+              title="Expand to Fullscreen Cyberdeck Viewport"
+            >
+              {isFullscreen ? (
+                <>
+                  <Minimize2 className="w-3.5 h-3.5" />
+                  <span>RESTORE (ESC)</span>
+                </>
+              ) : (
+                <>
+                  <Maximize2 className="w-3.5 h-3.5" />
+                  <span>MAXIMIZE 3D CYBERDECK</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
-        <div className="absolute top-4 right-6 pointer-events-none text-orange-400 font-mono text-xs text-right">
-          LATENCY: 12ms // 60 FPS [+]
-        </div>
-        <div className="absolute bottom-4 left-6 pointer-events-none text-gray-500 font-mono text-[11px]">
-          [+] CLICK &amp; DRAG TO ROTATE 360&deg;
+
+        {/* Bottom Tactical Info Overlay */}
+        <div className="absolute bottom-4 left-6 pointer-events-none text-gray-400 font-mono text-[11px] flex items-center gap-3">
+          <span>[+] DRAG MOUSE TO ROTATE 360° // SCROLL TO ZOOM</span>
         </div>
         <div className="absolute bottom-4 right-6 pointer-events-none text-cyan-400 font-mono text-[11px] text-right">
-          ZERO-TRUST SHA-256 VAULT [+]
+          LATENCY: 12ms // 60 FPS // SHA-256 VAULT [+]
         </div>
 
         {/* Real Three.js Canvas Container */}
@@ -651,7 +782,7 @@ export default function ForensicHolodeckHero({
                 {inspectionVerdict.sha256}
               </span>
               <Link
-                href="/verification"
+                href="/app/history"
                 className="text-xs text-cyan-400 hover:text-cyan-300 font-bold flex items-center gap-1"
               >
                 <span>DOSSIER</span>
@@ -682,8 +813,8 @@ export default function ForensicHolodeckHero({
         {/* Global CTAs */}
         <div className="flex flex-wrap items-center justify-center gap-4 w-full">
           <Link
-            href="/verification"
-            className="btn-primary px-8 py-3.5 text-sm font-semibold flex items-center gap-2 shadow-lg shadow-orange-600/30"
+            href="/app/dashboard"
+            className="btn-primary px-8 py-3.5 text-sm font-semibold flex items-center gap-2 shadow-lg shadow-cyan-600/30 bg-gradient-to-r from-cyan-500 to-teal-400 text-black rounded-xl font-bold"
           >
             <span>LAUNCH FULL PLATFORM</span>
             <ArrowRight className="w-4 h-4" />
