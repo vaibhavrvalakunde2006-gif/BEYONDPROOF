@@ -140,7 +140,7 @@ export default function LandingPage() {
             </div>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-300">
+          <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-gray-300">
             <a href="#how-it-works" className="hover:text-violet-400 transition-colors">
               How It Works
             </a>
@@ -149,6 +149,23 @@ export default function LandingPage() {
             </a>
             <a href="#capabilities" className="hover:text-violet-400 transition-colors">
               Capabilities
+            </a>
+            <a
+              href="/hero.html"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-amber-400 hover:text-amber-300 transition-colors flex items-center gap-1.5"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              Cinematic Hero
+            </a>
+            <a
+              href="/BEYONDPROOF_2_Minute_Judge_Pitch.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-cyan-400 hover:text-cyan-300 transition-colors"
+            >
+              Judge Pitch PDF
             </a>
           </nav>
 
@@ -214,6 +231,15 @@ export default function LandingPage() {
                 className="btn-secondary w-full sm:w-auto text-base px-8 py-3.5"
               >
                 Explore 7 Engines
+              </a>
+              <a
+                href="/hero.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 font-medium text-base transition-colors"
+              >
+                <Sparkles className="w-4 h-4 text-orange-400" />
+                <span>Cinematic Scanner</span>
               </a>
             </div>
           </motion.div>

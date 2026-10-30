@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 import pytest
 import pytest_asyncio
-from httpx import AsyncClient
+from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 
 # Ensure backend root is on sys.path
@@ -39,10 +39,15 @@ async def prepare_database():
 
 @pytest_asyncio.fixture
 async def db_session():
-    """Provide a transactional database session for each test."""
+    """Provide an isolated database session for each test with cleanup."""
     async with TestSessionLocal() as session:
         yield session
-        await session.rollback()
+        try:
+            for table in reversed(Base.metadata.sorted_tables):
+                await session.execute(table.delete())
+            await session.commit()
+        except Exception:
+            await session.rollback()
 
 
 @pytest_asyncio.fixture
@@ -52,7 +57,7 @@ async def async_client(db_session: AsyncSession):
         yield db_session
 
     app.dependency_overrides[get_db] = override_get_db
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         yield client
     app.dependency_overrides.clear()
 

@@ -759,7 +759,7 @@
          =================================================================== -->
     <header class="navbar" id="navbar">
       <!-- Left Logo -->
-      <a href="/" class="brand" aria-label="BEYONDPROOF Homepage">
+      <a href="/" class="brand" id="brandLogo" aria-label="BEYONDPROOF Homepage">
         <div class="brand-logo-mark">
           <!-- 4-point forensic sparkle/shield SVG cut-out -->
           <svg viewBox="0 0 24 24">
@@ -771,11 +771,11 @@
 
       <!-- Center Links -->
       <ul class="nav-links">
-        <li><a href="#overview">Overview</a></li>
-        <li><a href="#technology">Technology</a></li>
-        <li><a href="#seven-engines">Seven Engines</a></li>
-        <li><a href="#how-it-works">How It Works</a></li>
-        <li><a href="#about">About</a></li>
+        <li><a href="#overview" id="linkOverview">Overview</a></li>
+        <li><a href="#technology" id="linkTech">Technology</a></li>
+        <li><a href="#seven-engines" id="linkEngines">Seven Engines</a></li>
+        <li><a href="#how-it-works" id="linkHowItWorks">How It Works</a></li>
+        <li><a href="/BEYONDPROOF_2_Minute_Judge_Pitch.pdf" id="linkAbout" target="_blank" rel="noopener noreferrer">About</a></li>
       </ul>
 
       <!-- Right Login & Mobile Hamburger -->
@@ -801,12 +801,12 @@
 
       <!-- Mobile Dropdown -->
       <div class="mobile-dropdown" id="mobileDropdown">
-        <a href="#overview">Overview</a>
-        <a href="#technology">Technology</a>
-        <a href="#seven-engines">Seven Engines</a>
-        <a href="#how-it-works">How It Works</a>
-        <a href="#about">About</a>
-        <a href="http://localhost:3000/login" style="color: var(--accent-orange); font-weight: 600;">Log In &rarr;</a>
+        <a href="#overview" id="mLinkOverview">Overview</a>
+        <a href="#technology" id="mLinkTech">Technology</a>
+        <a href="#seven-engines" id="mLinkEngines">Seven Engines</a>
+        <a href="#how-it-works" id="mLinkHowItWorks">How It Works</a>
+        <a href="/BEYONDPROOF_2_Minute_Judge_Pitch.pdf" id="mLinkAbout" target="_blank" rel="noopener noreferrer">About</a>
+        <a href="http://localhost:3000/login" id="mLinkLogin" style="color: var(--accent-orange); font-weight: 600;">Log In &rarr;</a>
       </div>
     </header>
 
@@ -1213,21 +1213,33 @@
       // -------------------------------------------------------------
       // 4. BUTTON CLICK ACTIONS & ROUTING
       // -------------------------------------------------------------
-      const startVerificationBtn = document.getElementById('startVerificationBtn');
-      if (startVerificationBtn) {
-        startVerificationBtn.addEventListener('click', (e) => {
-          // If frontend server running on :3000, navigate to verification hub
-          // Otherwise gracefully handle click
-          console.log('Navigating to BEYONDPROOF Verification Hub...');
-        });
-      }
+      const isStandaloneFile = window.location.protocol === 'file:' || (window.location.port !== '3000' && window.location.port !== '');
+      const appBase = isStandaloneFile ? 'http://localhost:3000' : '';
 
-      const exploreBtn = document.getElementById('explorePlatformBtn');
-      if (exploreBtn) {
-        exploreBtn.addEventListener('click', (e) => {
-          console.log('Navigating to BEYONDPROOF Intelligence Dashboard...');
-        });
-      }
+      const routeMapping = [
+        { id: 'brandLogo', path: '/' },
+        { id: 'loginBtn', path: '/login' },
+        { id: 'mLinkLogin', path: '/login' },
+        { id: 'startVerificationBtn', path: '/verification' },
+        { id: 'explorePlatformBtn', path: '/dashboard' },
+        { id: 'linkOverview', path: '/#capabilities' },
+        { id: 'linkTech', path: '/#engines' },
+        { id: 'linkEngines', path: '/#engines' },
+        { id: 'linkHowItWorks', path: '/#how-it-works' },
+        { id: 'linkAbout', path: '/BEYONDPROOF_2_Minute_Judge_Pitch.pdf' },
+        { id: 'mLinkOverview', path: '/#capabilities' },
+        { id: 'mLinkTech', path: '/#engines' },
+        { id: 'mLinkEngines', path: '/#engines' },
+        { id: 'mLinkHowItWorks', path: '/#how-it-works' },
+        { id: 'mLinkAbout', path: '/BEYONDPROOF_2_Minute_Judge_Pitch.pdf' }
+      ];
+
+      routeMapping.forEach(({ id, path }) => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.href = `${appBase}${path}`;
+        }
+      });
     });
   </script>
 </body>

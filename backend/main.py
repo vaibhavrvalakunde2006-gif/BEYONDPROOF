@@ -40,10 +40,18 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS configuration — allow frontend origin
+# CORS configuration — allow frontend origins and local inspection
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:3001"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:3001",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+        "null",
+    ],
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$",
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allow_headers=["*"],
@@ -66,6 +74,19 @@ app.include_router(risk_router)
 app.include_router(verification_router)
 app.include_router(admin_router)
 app.include_router(ws_router)
+
+
+@app.get("/")
+async def root():
+    """Root platform health & service index."""
+    return {
+        "platform": "BEYONDPROOF",
+        "tagline": "Beyond Trust. Beyond Doubt.",
+        "status": "operational",
+        "docs_url": "/docs",
+        "health_url": "/api/health",
+        "version": "1.0.0",
+    }
 
 
 @app.get("/api/health")
