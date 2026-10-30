@@ -3,6 +3,7 @@
 import React, { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { ArrowRight, Sparkles, Shield, CheckCircle2 } from 'lucide-react';
+import { ThreeFingerprintScene } from './3d/ThreeFingerprintScene';
 
 interface CinematicScannerHeroProps {
   onQuickLogin?: () => void;
@@ -269,12 +270,15 @@ export function CinematicScannerHero({ onQuickLogin, isLoggingIn }: CinematicSca
         </div>
 
         {/* Circular Aperture Stage */}
-        <div className="relative w-[480px] sm:w-[560px] h-[480px] sm:h-[560px] -bottom-[260px] sm:-bottom-[300px] rounded-full bg-black border border-orange-500/50 shadow-[0_0_60px_rgba(255,122,36,0.45),inset_0_0_40px_rgba(0,0,0,0.95)] flex items-center justify-center">
+        <div className="relative w-[480px] sm:w-[560px] h-[480px] sm:h-[560px] -bottom-[260px] sm:-bottom-[300px] rounded-full bg-black border border-orange-500/50 shadow-[0_0_60px_rgba(255,122,36,0.45),inset_0_0_40px_rgba(0,0,0,0.95)] flex items-center justify-center overflow-hidden">
+          {/* Real Three.js 3D WebGL Luminous Fingerprint */}
+          <ThreeFingerprintScene className="absolute inset-0 z-0 pointer-events-auto" />
+
           {/* White-Hot Rim */}
-          <div className="absolute inset-0 rounded-full shadow-[inset_0_0_14px_#FFFFFF,inset_0_0_28px_#FFB347,inset_0_0_55px_#FF7A24,0_0_20px_#FFFFFF,0_0_40px_#FFB347]" />
+          <div className="absolute inset-0 rounded-full shadow-[inset_0_0_14px_#FFFFFF,inset_0_0_28px_#FFB347,inset_0_0_55px_#FF7A24,0_0_20px_#FFFFFF,0_0_40px_#FFB347] pointer-events-none" />
 
           {/* Molten Upper Arc */}
-          <div className="absolute -top-[2px] left-[10%] w-[80%] h-[40%] rounded-t-full border-t-[3px] border-white drop-shadow-[0_0_16px_#FF7A24]" />
+          <div className="absolute -top-[2px] left-[10%] w-[80%] h-[40%] rounded-t-full border-t-[3px] border-white drop-shadow-[0_0_16px_#FF7A24] pointer-events-none" />
 
           {/* Laser Scanning Beam */}
           <div
