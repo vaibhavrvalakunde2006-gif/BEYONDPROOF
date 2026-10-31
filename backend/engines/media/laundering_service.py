@@ -332,24 +332,24 @@ def validate_metadata_against_image_physics(
                 actual_ratio = max(img_w, img_h) / max(min(img_w, img_h), 1)
                 actual_mp = (img_w * img_h) / 1_000_000.0
 
-                # 1:1 Square (characteristic of Midjourney, DALL-E, Stable Diffusion)
+                # 1:1 Square (common in diffusion generators, but also valid user crops)
                 is_square = abs(actual_ratio - 1.0) < 0.05
                 is_screenshot_ratio = actual_ratio > 1.85
 
                 if is_square:
-                    evaluations["sensor_resolution_check"] = "failed"
+                    evaluations["sensor_resolution_check"] = "flagged_crop"
                     findings.append(
                         MediaFinding(
-                            code="METADATA_PHYSICAL_RESOLUTION_MISMATCH",
-                            severity="critical",
+                            code="METADATA_ASPECT_RATIO_NON_NATIVE",
+                            severity="medium",
                             description=(
-                                f"Physical sensor contradiction: EXIF claims '{claimed_camera}', which features a "
-                                f"native {matched_spec['mp']} MP 3:2 ({matched_spec['ratio']}:1) sensor, but the image is a "
-                                f"1:1 square ({img_w}x{img_h}). Square aspect ratios are diagnostic of synthetic AI generation."
+                                f"Non-native sensor aspect ratio: EXIF claims native '{claimed_camera}' (native 3:2 sensor, {matched_spec['mp']} MP), "
+                                f"but file is 1:1 square ({img_w}x{img_h}). While square dimensions alone do not prove forgery (due to legitimate user cropping), "
+                                f"absence of in-camera digital crop EXIF tags warrants corroborating analysis via quantization tables and noise variance."
                             ),
                             evidence=(
-                                f"Claimed hardware: {matched_spec['name']} ({matched_spec['w']}x{matched_spec['h']}, 3:2 ratio). "
-                                f"Actual file: {img_w}x{img_h} ({actual_ratio:.2f}:1 aspect ratio, {actual_mp:.2f} MP)."
+                                f"Claimed hardware: {matched_spec['name']} ({matched_spec['w']}x{matched_spec['h']}, 3:2 native). "
+                                f"Measured file: {img_w}x{img_h} (1:1 aspect ratio, {actual_mp:.2f} MP). Requires corroboration."
                             ),
                             location="EXIF Camera Model vs Pixel Dimensions",
                         )

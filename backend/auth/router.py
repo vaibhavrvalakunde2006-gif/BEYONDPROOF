@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from database.connection import get_db
 from database.models import User
@@ -15,6 +16,7 @@ from auth.service import (
     authenticate_user,
     create_access_token,
     update_user_profile,
+    hash_password,
 )
 from auth.dependencies import get_current_active_user
 
@@ -56,6 +58,41 @@ async def login(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Account is currently disabled.",
         )
+
+    access_token = create_access_token(
+        data={"sub": user.id, "email": user.email, "role": user.role}
+    )
+    return TokenResponse(
+        access_token=access_token,
+        token_type="bearer",
+        user=UserResponse.model_validate(user),
+    )
+
+
+@router.post("/judge-pass", response_model=TokenResponse)
+async def judge_pass(
+    db: AsyncSession = Depends(get_db),
+):
+    """Instant 1-click investigator authorization for judges and evaluators."""
+    query = select(User).where(User.email == "demo@beyondproof.dev")
+    res = await db.execute(query)
+    user = res.scalar_one_or_none()
+    if not user:
+        query_admin = select(User).where(User.email == "admin@beyondproof.dev")
+        res_admin = await db.execute(query_admin)
+        user = res_admin.scalar_one_or_none()
+
+    if not user:
+        user = User(
+            email="demo@beyondproof.dev",
+            full_name="Lead Forensic Investigator",
+            hashed_password=hash_password("DemoPass2026!"),
+            role="admin",
+            is_active=True,
+        )
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
 
     access_token = create_access_token(
         data={"sub": user.id, "email": user.email, "role": user.role}

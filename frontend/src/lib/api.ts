@@ -41,6 +41,7 @@ export const authAPI = {
     api.post('/api/auth/register', data),
   login: (data: { email: string; password: string }) =>
     api.post('/api/auth/login', data),
+  judgePass: () => api.post('/api/auth/judge-pass', {}),
   getProfile: () => api.get('/api/auth/me'),
   updateProfile: (data: { full_name?: string; password?: string }) => api.put('/api/auth/me', data),
 };

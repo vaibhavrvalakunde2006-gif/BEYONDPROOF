@@ -491,6 +491,33 @@ async def full_image_analysis(
     engine_result.findings = findings_json
     engine_result.confidence = 0.95
     engine_result.completed_at = datetime.now(timezone.utc)
+
+    # Persist laundering and cross-modal metrics into DocumentMetadata for universal access
+    try:
+        from database.models import DocumentMetadata
+        doc_meta_q = await db.execute(
+            select(DocumentMetadata).where(DocumentMetadata.file_id == file_id)
+        )
+        doc_meta_rec = doc_meta_q.scalar_one_or_none()
+        laundering_meta = {
+            "moire_metrics": moire_metrics,
+            "screenshot_metrics": screenshot_metrics,
+            "cross_modal_validation": physics_eval,
+            "authenticity": authenticity_info,
+        }
+        if not doc_meta_rec:
+            doc_meta_rec = DocumentMetadata(
+                file_id=file_id,
+                metadata_json=laundering_meta,
+            )
+            db.add(doc_meta_rec)
+        else:
+            cur_json = dict(doc_meta_rec.metadata_json) if isinstance(doc_meta_rec.metadata_json, dict) else {}
+            cur_json.update(laundering_meta)
+            doc_meta_rec.metadata_json = cur_json
+    except Exception as doc_meta_err:
+        print(f"Notice: DocumentMetadata laundering sync skipped: {doc_meta_err}")
+
     await db.commit()
 
     details = {

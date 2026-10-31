@@ -12,6 +12,7 @@ from database.models import (
     RiskAssessment,
     User,
     AuditLog,
+    DocumentMetadata,
 )
 from engines.document.service import full_document_analysis
 from engines.media.image_service import full_image_analysis
@@ -289,6 +290,25 @@ async def get_verification(
             authenticity_details=auth_eval,
         )
 
+    # Load DocumentMetadata if available
+    doc_meta_q = await db.execute(
+        select(DocumentMetadata).where(DocumentMetadata.file_id == verification.file_id)
+    )
+    doc_meta = doc_meta_q.scalar_one_or_none()
+    meta_json = doc_meta.metadata_json if (doc_meta and isinstance(doc_meta.metadata_json, dict)) else {}
+
+    doc_category = meta_json.get("document_category")
+    doc_category_name = meta_json.get("document_category_name")
+    suspected_fields = meta_json.get("suspected_fields")
+    suspicious_regions = meta_json.get("suspicious_regions")
+    editing_timeline = meta_json.get("timeline")
+    rule_validation = meta_json.get("rule_validation")
+    annotated_image_url = meta_json.get("annotated_image_url")
+    moire_metrics = meta_json.get("moire_metrics")
+    cross_modal_validation = meta_json.get("cross_modal_validation")
+    screenshot_metrics = meta_json.get("screenshot_metrics")
+    authenticity = meta_json.get("authenticity") or (risk_summary.authenticity_details if risk_summary else None)
+
     return VerificationDetailResponse(
         id=verification.id,
         user_id=verification.user_id,
@@ -299,8 +319,19 @@ async def get_verification(
         sha256_hash=file_record.sha256_hash if file_record else "",
         status=verification.status,
         engines_requested=verification.engines_requested or [],
+        document_category=doc_category,
+        document_category_name=doc_category_name,
+        suspected_fields=suspected_fields,
+        suspicious_regions=suspicious_regions,
+        editing_timeline=editing_timeline,
+        rule_validation=rule_validation,
+        annotated_image_url=annotated_image_url,
         engine_results=engine_summaries,
         risk_assessment=risk_summary,
+        moire_metrics=moire_metrics,
+        cross_modal_validation=cross_modal_validation,
+        screenshot_metrics=screenshot_metrics,
+        authenticity=authenticity,
         created_at=verification.created_at,
         completed_at=verification.completed_at,
     )

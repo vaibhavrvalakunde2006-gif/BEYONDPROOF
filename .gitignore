@@ -47,3 +47,4 @@ htmlcov/
 
 # Generated
 *.log
+*.tsbuildinfo

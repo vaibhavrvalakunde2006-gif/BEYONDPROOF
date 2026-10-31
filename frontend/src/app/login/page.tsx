@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
-  Fingerprint,
   ArrowRight,
   Shield,
   Lock,
@@ -15,7 +14,7 @@ import {
 } from 'lucide-react';
 import { soundManager } from '@/lib/soundFx';
 
-export default function Login() {
+export default function EliteLogin() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -24,10 +23,10 @@ export default function Login() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    triggerAuth('analyst@beyondproof.internal');
+    triggerAuth();
   };
 
-  const triggerAuth = (targetEmail: string) => {
+  const triggerAuth = () => {
     soundManager.playLaserScan();
     setIsAuthenticating(true);
     setAuthStep('scanning');
@@ -37,165 +36,153 @@ export default function Login() {
       setAuthStep('granted');
       setTimeout(() => {
         router.push('/app/dashboard');
-      }, 700);
-    }, 1200);
+      }, 600);
+    }, 1000);
   };
 
   const handleJudgePass = () => {
     setEmail('lead.investigator@beyondproof.internal');
     setPassword('••••••••••••••••');
-    triggerAuth('lead.investigator@beyondproof.internal');
+    triggerAuth();
   };
 
   return (
-    <main className="min-h-screen bg-[#05070b] flex flex-col items-center justify-center p-6 relative overflow-hidden select-none">
-      {/* Ambient Cybernetic Grid & Glow */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_25%,rgba(0,229,255,0.12)_0%,rgba(5,7,11,0.98)_70%)] pointer-events-none" />
-      <div
-        className="absolute inset-0 pointer-events-none opacity-10"
-        style={{
-          backgroundImage:
-            'linear-gradient(rgba(0,229,255,0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(0,229,255,0.2) 1px, transparent 1px)',
-          backgroundSize: '40px 40px',
-        }}
-      />
+    <main className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden select-none">
+      {/* Dynamic Ambient Aurora Orbs */}
+      <div className="fixed top-[-100px] left-[-100px] w-[500px] h-[500px] rounded-full bg-cyan-500/15 blur-[130px] pointer-events-none z-0" />
+      <div className="fixed bottom-[-100px] right-[-100px] w-[600px] h-[600px] rounded-full bg-purple-600/15 blur-[150px] pointer-events-none z-0" />
 
-      {/* Top Left Brandmark */}
+      {/* Brand Top Left */}
       <Link
         href="/"
         onClick={() => soundManager.playBlip()}
-        className="absolute top-8 left-8 flex items-center gap-2.5 font-bold tracking-wider text-sm lg:text-base text-white hover:opacity-90 transition-opacity"
-        style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+        className="absolute top-8 left-8 flex items-center gap-3 text-white font-bold z-20"
       >
-        <div className="w-8 h-8 rounded-lg bg-cyan-950/80 border border-cyan-400/50 flex items-center justify-center text-cyan-400 shadow-[0_0_15px_rgba(0,229,255,0.3)]">
-          <Fingerprint className="w-5 h-5" />
+        <div className="w-8 h-8 rounded-lg bg-white/[0.06] border border-white/[0.12] flex items-center justify-center text-white">
+          <Shield className="w-4 h-4 text-cyan-400" />
         </div>
-        <span>
+        <span className="text-[14px] font-bold tracking-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
           BEYOND<span className="text-cyan-400">PROOF</span>
-        </span>
-        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/30">
-          OS v2.4
         </span>
       </Link>
 
-      {/* Auth Card */}
-      <div className="relative w-full max-w-md p-8 sm:p-10 rounded-3xl bg-[#0a0f18]/90 border border-cyan-500/30 backdrop-blur-2xl shadow-[0_0_60px_rgba(0,229,255,0.12)] z-10">
-        {/* Eyebrow */}
-        <div className="flex items-center justify-between text-xs font-mono mb-6">
-          <span className="text-cyan-400 font-bold flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
-            SECURE ACCESS PORTAL // 01
-          </span>
-          <span className="text-gray-500">256-BIT TLS</span>
-        </div>
-
-        {/* Header */}
-        <h1
-          className="text-3xl sm:text-4xl font-bold text-white mb-2 tracking-tight"
-          style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-        >
-          Welcome <span className="text-cyan-400">Back.</span>
-        </h1>
-        <p className="text-xs font-mono text-gray-400 mb-8 leading-relaxed">
-          Sign in with cryptographic clearance to access active forensic dossiers and engine telemetry.
-        </p>
-
-        {/* 1-Click Judge Express Bypass */}
-        <div className="mb-6">
-          <button
-            type="button"
-            onClick={handleJudgePass}
-            disabled={isAuthenticating}
-            className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-cyan-500/20 via-teal-500/20 to-emerald-500/20 hover:from-cyan-500/30 hover:to-emerald-500/30 border border-cyan-400/50 text-cyan-300 font-mono text-xs font-bold flex items-center justify-center gap-2.5 transition-all shadow-[0_0_20px_rgba(0,229,255,0.2)] hover:shadow-[0_0_30px_rgba(0,229,255,0.35)] group active:scale-[0.99]"
-          >
-            <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
-            <span>1-CLICK JUDGE PASS (LEAD INVESTIGATOR)</span>
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </button>
-          <span className="block text-center text-[10px] font-mono text-gray-500 mt-2">
-            Instant bypass for hackathon demonstration &amp; evaluation
-          </span>
-        </div>
-
-        {/* Divider */}
-        <div className="flex items-center gap-4 mb-6">
-          <div className="flex-1 h-px bg-white/[0.08]" />
-          <span className="text-[10px] font-mono text-gray-500 uppercase">OR STANDARD SIGN IN</span>
-          <div className="flex-1 h-px bg-white/[0.08]" />
-        </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4 font-mono text-xs">
+      {/* Institutional Liquid Glass Auth Card */}
+      <div className="relative w-full max-w-md z-10">
+        <div className="p-8 sm:p-10 rounded-2xl pro-panel space-y-6">
+          
           <div>
-            <label className="block text-gray-400 mb-2 flex items-center gap-1.5">
-              <Mail className="w-3.5 h-3.5 text-cyan-400" />
-              <span>OFFICIAL EMAIL ADDRESS</span>
-            </label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="lead.analyst@beyondproof.internal"
-              className="w-full px-4 py-3 rounded-xl bg-black/60 border border-white/10 focus:border-cyan-400 focus:outline-none text-white text-xs transition-colors placeholder:text-gray-600"
-            />
+            <div className="badge-clean badge-cyan mb-3">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+              <span>SECURE ACCESS PORTAL</span>
+            </div>
+            <h1
+              className="text-2xl sm:text-3xl font-bold text-white tracking-tight"
+              style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+            >
+              Sign in to Workspace
+            </h1>
+            <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+              Authenticate session credentials to access active evidence dossiers.
+            </p>
           </div>
 
-          <div>
-            <label className="block text-gray-400 mb-2 flex items-center gap-1.5">
-              <Lock className="w-3.5 h-3.5 text-cyan-400" />
-              <span>ENCRYPTED PASSKEY</span>
-            </label>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••••••••••"
-              className="w-full px-4 py-3 rounded-xl bg-black/60 border border-white/10 focus:border-cyan-400 focus:outline-none text-white text-xs transition-colors placeholder:text-gray-600"
-            />
+          {/* 1-Click Judge Pass */}
+          <div className="space-y-2">
+            <button
+              type="button"
+              onClick={handleJudgePass}
+              disabled={isAuthenticating}
+              className="w-full py-3 px-4 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.15] text-white text-xs font-semibold flex items-center justify-center gap-2.5 transition-all shadow-sm group cursor-pointer"
+            >
+              <Sparkles className="w-4 h-4 text-cyan-400" />
+              <span>1-Click Lead Auditor Pass (For Judges)</span>
+              <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+            </button>
+            <span className="block text-center text-[10px] text-slate-500 font-mono">
+              Direct express bypass for hackathon demonstration
+            </span>
           </div>
 
-          <button
-            type="submit"
-            disabled={isAuthenticating}
-            className={`w-full py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all mt-4 ${
-              authStep === 'granted'
-                ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/30'
-                : authStep === 'scanning'
-                ? 'bg-cyan-600 text-white animate-pulse'
-                : 'bg-gradient-to-r from-cyan-500 to-teal-400 text-black hover:brightness-110 shadow-lg shadow-cyan-600/25'
-            }`}
-          >
-            {authStep === 'granted' ? (
-              <>
-                <CheckCircle className="w-4 h-4" />
-                <span>CLEARANCE GRANTED // REDIRECTING...</span>
-              </>
-            ) : authStep === 'scanning' ? (
-              <>
-                <Scan className="w-4 h-4 animate-spin" />
-                <span>VERIFYING CRYPTOGRAPHIC TOKEN...</span>
-              </>
-            ) : (
-              <>
-                <span>AUTHENTICATE SESSION</span>
-                <ArrowRight className="w-4 h-4" />
-              </>
-            )}
-          </button>
-        </form>
+          {/* Divider */}
+          <div className="flex items-center gap-4">
+            <div className="flex-1 h-px bg-white/[0.08]" />
+            <span className="text-[9px] text-slate-500 uppercase font-mono tracking-wider">
+              OR CREDENTIAL LOGIN
+            </span>
+            <div className="flex-1 h-px bg-white/[0.08]" />
+          </div>
 
-        {/* Footer info */}
-        <div className="pt-6 mt-6 border-t border-white/[0.08] flex items-center justify-between text-xs font-mono text-gray-500">
-          <span>New investigator?</span>
-          <Link
-            href="/register"
-            onClick={() => soundManager.playBlip()}
-            className="text-cyan-400 hover:text-cyan-300 font-bold transition-colors"
-          >
-            Register Workspace &rarr;
-          </Link>
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-4 text-xs font-sans">
+            <div>
+              <label className="block text-slate-300 mb-1.5 text-[11px] font-medium">
+                Email Address
+              </label>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="auditor@beyondproof.internal"
+                className="w-full px-3.5 py-2.5 rounded-lg bg-black/40 border border-white/[0.1] focus:border-cyan-400/60 focus:outline-none text-white text-xs transition-colors placeholder:text-slate-600"
+              />
+            </div>
+
+            <div>
+              <label className="block text-slate-300 mb-1.5 text-[11px] font-medium">
+                Passkey
+              </label>
+              <input
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••••••••••"
+                className="w-full px-3.5 py-2.5 rounded-lg bg-black/40 border border-white/[0.1] focus:border-cyan-400/60 focus:outline-none text-white text-xs transition-colors placeholder:text-slate-600"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={isAuthenticating}
+              className={`w-full py-2.5 rounded-lg font-semibold text-xs flex items-center justify-center gap-2 transition-all mt-4 ${
+                authStep === 'granted'
+                  ? 'bg-emerald-500 text-black'
+                  : authStep === 'scanning'
+                  ? 'bg-cyan-500 text-black'
+                  : 'btn-primary w-full'
+              }`}
+            >
+              {authStep === 'granted' ? (
+                <>
+                  <CheckCircle className="w-4 h-4" />
+                  <span>Access Granted</span>
+                </>
+              ) : authStep === 'scanning' ? (
+                <>
+                  <Scan className="w-4 h-4 animate-spin" />
+                  <span>Verifying Keyring...</span>
+                </>
+              ) : (
+                <>
+                  <span>Sign In</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </>
+              )}
+            </button>
+          </form>
+
+          {/* Footer */}
+          <div className="pt-4 border-t border-white/[0.06] flex items-center justify-between text-[11px] text-slate-400">
+            <span>Need key credentials?</span>
+            <Link
+              href="/register"
+              onClick={() => soundManager.playBlip()}
+              className="text-cyan-400 hover:text-cyan-300 font-semibold"
+            >
+              Provision Keyring &rarr;
+            </Link>
+          </div>
         </div>
       </div>
     </main>

@@ -199,6 +199,10 @@ class SoundEffectsManager {
       osc.stop(now + 0.22);
     } catch {}
   }
+
+  public playBeep() {
+    this.playBlip();
+  }
 }
 
 export const soundManager = new SoundEffectsManager();

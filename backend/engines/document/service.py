@@ -10,6 +10,10 @@ from sqlalchemy import select
 
 from database.models import EngineResult, DocumentMetadata
 from engines.document.models import DocumentFinding, DocumentAnalysisResponse, DocumentMetadataSummary
+from engines.document.universal_classifier import classify_document
+from engines.document.category_rules import validate_document_rules
+from engines.document.tampering_localizer import localize_tampering
+from engines.document.timeline_analyzer import analyze_document_timeline
 
 
 def parse_pdf_date(date_str: Optional[str]) -> Optional[datetime]:
@@ -494,11 +498,142 @@ async def full_document_analysis(
                 )
             )
 
-    # Upsert DocumentMetadata record
+    # 8. Fallback OCR if text is sparse
+    if text_data.get("total_chars", 0) < 50:
+        ocr_result = perform_ocr(file_path)
+        if ocr_result:
+            extracted_text = ocr_result
+            all_findings.append(
+                DocumentFinding(
+                    code="DOC_OCR_APPLIED",
+                    severity="info",
+                    description="Optical Character Recognition (OCR) was utilized to extract embedded raster text.",
+                    evidence=f"Recovered {len(ocr_result)} characters via OCR.",
+                    location="OCR engine",
+                )
+            )
+
+    # 9. UNIVERSAL DOCUMENT TYPE CLASSIFICATION
+    cat_key, cat_name, cat_conf, cat_signals = classify_document(extracted_text, metadata_info)
+    all_findings.append(
+        DocumentFinding(
+            code="DOC_CLASSIFICATION_DETERMINED",
+            severity="info",
+            description=f"Specimen classified as '{cat_name}' with {int(cat_conf * 100)}% structural confidence.",
+            evidence=f"Matched signals: {', '.join(cat_signals[:4])}",
+            location="Document Header & Entity Taxonomy",
+        )
+    )
+
+    # 10. DOCUMENT-SPECIFIC FORENSIC VALIDATION RULES
+    rule_results = validate_document_rules(cat_key, extracted_text, metadata_info)
+    suspected_fields = []
+    rule_summary_items = []
+
+    for r in rule_results:
+        rule_summary_items.append({
+            "rule_id": r.rule_id,
+            "rule_name": r.rule_name,
+            "passed": r.passed,
+            "severity": r.severity,
+            "details": r.details,
+            "field_name": r.field_name,
+            "evidence": r.evidence,
+        })
+        if not r.passed:
+            all_findings.append(
+                DocumentFinding(
+                    code=r.rule_id,
+                    severity=r.severity,
+                    description=r.details,
+                    evidence=r.evidence,
+                    location=r.field_name or cat_name,
+                )
+            )
+            suspected_fields.append({
+                "field_name": r.field_name or r.rule_name,
+                "suspected_change": "MODIFIED" if r.severity in ["critical", "high"] else "INCONSISTENCY",
+                "details": r.details,
+                "evidence": r.evidence,
+                "severity": r.severity,
+                "bbox": r.bbox,
+            })
+
+    # 11. CHRONOLOGICAL EDITING TIMELINE & TIMESTAMP RELIABILITY
+    timeline_data = analyze_document_timeline(file_path, metadata_info)
+    if timeline_data.get("is_date_tampered"):
+        all_findings.append(
+            DocumentFinding(
+                code="DOC_TIMELINE_COLLISION",
+                severity="critical",
+                description=timeline_data.get("reliability_explanation", "Timestamp desynchronization detected."),
+                evidence=f"Creation: {timeline_data.get('creation_date')}, Modification: {timeline_data.get('last_modification_date')}",
+                location="Metadata Timestamp Streams",
+            )
+        )
+    elif timeline_data.get("revision_passes", 1) > 1:
+        all_findings.append(
+            DocumentFinding(
+                code="DOC_MULTI_REVISION_PASSES",
+                severity="high",
+                description=f"Multiple incremental update passes ({timeline_data.get('revision_passes')} %%EOF trailers). Document was modified post-creation.",
+                evidence=f"Detected software footprint: {timeline_data.get('detected_software_footprint') or 'PDF Editor'}",
+                location="PDF Trailer Dictionary & Object Streams",
+            )
+        )
+
+    # 12. ELEMENT-LEVEL TAMPERING LOCALIZATION & BOUNDING BOX EXTRACTION
+    regions, annotated_rel_path = localize_tampering(
+        file_path=file_path,
+        output_dir="./uploads/annotated",
+        file_id=file_id,
+        rule_results=rule_results,
+    )
+
+    for reg in regions:
+        if reg.suspected_change in ["FONT_SPLICED", "OVERLAY"] and not any(f.code == reg.id for f in all_findings):
+            all_findings.append(
+                DocumentFinding(
+                    code=reg.id,
+                    severity=reg.severity,
+                    description=reg.explanation,
+                    evidence=reg.evidence,
+                    location=f"Page {reg.page} (x:{reg.bbox[0]}%, y:{reg.bbox[1]}%)",
+                )
+            )
+            suspected_fields.append({
+                "field_name": reg.label,
+                "suspected_change": reg.suspected_change,
+                "details": reg.explanation,
+                "evidence": reg.evidence,
+                "severity": reg.severity,
+                "bbox": reg.bbox,
+            })
+
+    rule_validation_summary = {
+        "category": cat_name,
+        "rules_tested": len(rule_results),
+        "passed": sum(1 for r in rule_results if r.passed),
+        "failed": sum(1 for r in rule_results if not r.passed),
+        "results": rule_summary_items,
+    }
+
+    # 13. Upsert DocumentMetadata record
     doc_meta_query = await db.execute(
         select(DocumentMetadata).where(DocumentMetadata.file_id == file_id)
     )
     doc_meta_record = doc_meta_query.scalar_one_or_none()
+    meta_json_payload = {
+        "metadata_info": metadata_info,
+        "document_category": cat_key,
+        "document_category_name": cat_name,
+        "timeline": timeline_data,
+        "annotated_image_url": annotated_rel_path,
+        "suspected_fields": suspected_fields,
+        "suspicious_regions": [reg.to_dict() for reg in regions],
+        "rule_validation": rule_validation_summary,
+    }
+
     if not doc_meta_record:
         doc_meta_record = DocumentMetadata(
             file_id=file_id,
@@ -508,7 +643,7 @@ async def full_document_analysis(
             has_signatures=has_signatures,
             has_qr_codes=len(qr_data) > 0,
             qr_data=qr_data,
-            metadata_json=metadata_info,
+            metadata_json=meta_json_payload,
         )
         db.add(doc_meta_record)
     else:
@@ -518,13 +653,13 @@ async def full_document_analysis(
         doc_meta_record.has_signatures = has_signatures
         doc_meta_record.has_qr_codes = len(qr_data) > 0
         doc_meta_record.qr_data = qr_data
-        doc_meta_record.metadata_json = metadata_info
+        doc_meta_record.metadata_json = meta_json_payload
 
     # Update EngineResult
     findings_json = [f.model_dump() for f in all_findings]
     engine_result.status = "completed"
     engine_result.findings = findings_json
-    engine_result.confidence = 0.90
+    engine_result.confidence = cat_conf
     engine_result.completed_at = datetime.now(timezone.utc)
     await db.commit()
 
@@ -535,8 +670,8 @@ async def full_document_analysis(
         author=metadata_info.get("author"),
         creator=metadata_info.get("creator"),
         producer=metadata_info.get("producer"),
-        creation_date=metadata_info.get("creation_date"),
-        modification_date=metadata_info.get("mod_date"),
+        creation_date=timeline_data.get("creation_date"),
+        modification_date=timeline_data.get("last_modification_date"),
         has_signatures=has_signatures,
         has_qr_codes=len(qr_data) > 0,
         qr_data=qr_data,
@@ -544,12 +679,29 @@ async def full_document_analysis(
         font_families=font_families,
     )
 
+    rule_validation_summary = {
+        "category": cat_name,
+        "rules_tested": len(rule_results),
+        "passed": sum(1 for r in rule_results if r.passed),
+        "failed": sum(1 for r in rule_results if not r.passed),
+        "results": rule_summary_items,
+    }
+
     return DocumentAnalysisResponse(
         verification_id=verification_id,
         file_id=file_id,
         status="completed",
-        confidence=0.90,
+        confidence=cat_conf,
+        document_category=cat_key,
+        document_category_name=cat_name,
+        document_classification_confidence=cat_conf,
+        classification_signals=cat_signals,
         findings=all_findings,
+        suspected_fields=suspected_fields,
+        suspicious_regions=[reg.to_dict() for reg in regions],
+        rule_validation=rule_validation_summary,
+        editing_timeline=timeline_data,
+        annotated_image_url=annotated_rel_path,
         metadata=summary,
         extracted_text=extracted_text,
         fonts=fonts_list,

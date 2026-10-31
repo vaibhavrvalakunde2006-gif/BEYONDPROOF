@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Union
 from pydantic import BaseModel, Field
 
 
@@ -58,8 +58,19 @@ class VerificationDetailResponse(BaseModel):
     sha256_hash: str
     status: str
     engines_requested: List[str]
+    document_category: Optional[str] = None
+    document_category_name: Optional[str] = None
+    suspected_fields: Optional[List[Dict[str, Any]]] = None
+    suspicious_regions: Optional[List[Dict[str, Any]]] = None
+    editing_timeline: Optional[Dict[str, Any]] = None
+    rule_validation: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None
+    annotated_image_url: Optional[str] = None
     engine_results: List[EngineResultSummary] = []
     risk_assessment: Optional[RiskSummary] = None
+    moire_metrics: Optional[Dict[str, Any]] = None
+    cross_modal_validation: Optional[Dict[str, Any]] = None
+    screenshot_metrics: Optional[Dict[str, Any]] = None
+    authenticity: Optional[Dict[str, Any]] = None
     created_at: datetime
     completed_at: Optional[datetime] = None
 

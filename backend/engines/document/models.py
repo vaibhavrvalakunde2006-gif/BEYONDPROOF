@@ -36,7 +36,16 @@ class DocumentAnalysisResponse(BaseModel):
     engine_name: str = "document"
     status: str = Field(..., description="completed, failed, or skipped")
     confidence: float = Field(default=0.85, ge=0.0, le=1.0)
+    document_category: str = "generic_document"
+    document_category_name: str = "Standard Digital Document"
+    document_classification_confidence: float = 0.85
+    classification_signals: List[str] = []
     findings: List[DocumentFinding] = []
+    suspected_fields: List[Dict[str, Any]] = []
+    suspicious_regions: List[Dict[str, Any]] = []
+    rule_validation: Dict[str, Any] = {}
+    editing_timeline: Dict[str, Any] = {}
+    annotated_image_url: Optional[str] = None
     metadata: Optional[DocumentMetadataSummary] = None
     extracted_text: Optional[str] = None
     fonts: Optional[List[Dict[str, Any]]] = None
@@ -49,6 +58,13 @@ class DocumentReport(BaseModel):
     file_id: str
     filename: str
     page_count: int
+    document_category: str = "generic_document"
+    document_category_name: str = "Standard Digital Document"
+    suspected_fields: List[Dict[str, Any]] = []
+    suspicious_regions: List[Dict[str, Any]] = []
+    rule_validation: Dict[str, Any] = {}
+    editing_timeline: Dict[str, Any] = {}
+    annotated_image_url: Optional[str] = None
     fonts: List[Dict[str, Any]]
     has_signatures: bool
     has_qr_codes: bool
@@ -57,3 +73,4 @@ class DocumentReport(BaseModel):
     findings: List[DocumentFinding]
     raw_text_preview: Optional[str] = None
     analysis_date: datetime
+
